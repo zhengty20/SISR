@@ -1,32 +1,44 @@
 import torch
-from models import ARMSR
+from tqdm import tqdm
+
 from utils import create_val_loader, metrics
+from models import usm_interpolation, ISCSR
 
-def val_metrics(val_loader, scale, device, clip_ratio=0.8):
+scale = 2
+device = 'cuda'
+
+def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
     
-    frame = ARMSR(patch_size=(16, 16), scale_factor=2, overlap=4, device=device)
-    
-    metrics_list = []
-    
-    for lr_img, hr_img in val_loader:
+    metrics_list = []  # 存储(psnr, ssim)对
+
+    with torch.no_grad():
+        vpbar = tqdm(val_loader, desc='metric-validating', leave=False)
+        for lr_img, hr_img in vpbar:
                 
-        lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-        sr_img = frame.full_pipeline(lr_img.squeeze(0))
-        
-        crop_border = scale
-        sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-        hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-        
-        psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
-        ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
-        
-        metrics_list.append((psnr, ssim))
+            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
+            sr_img = usm_interpolation(lr_img, scale)
 
+            lr_img_norm = lr_img.div(255.)
+            sr_img_norm = model(lr_img_norm)
+            sr_img = ((sr_img_norm * 255.).round() + usm_interpolation(lr_img, model.scale)).clamp(0, 255)
+            
+            crop_border = scale
+            sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
+            hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
+            
+            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
+            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
+            
+            metrics_list.append((psnr, ssim))
+    
+    # 按照psnr值排序（降序）
     metrics_list.sort(key=lambda x: x[0], reverse=True)
-
+    
+    # 选择前clip_ratio比例的样本
     selected_count = int(len(metrics_list) * clip_ratio)
     selected_metrics = metrics_list[:selected_count]
     
+    # 分别计算选中样本的psnr和ssim平均值
     psnr_list = [item[0] for item in selected_metrics]
     ssim_list = [item[1] for item in selected_metrics]
 
@@ -34,30 +46,34 @@ def val_metrics(val_loader, scale, device, clip_ratio=0.8):
         'psnr': sum(psnr_list) / len(psnr_list),
         'ssim': sum(ssim_list) / len(ssim_list)
     }
+
+if __name__ == '__main__':
+
+    scale = 2
+
+    net = ISCSR(scale = 2, in_dim = 3, fea_dim = 32, num_blocks = 5, bias = False).to(device)
+    state_dict = torch.load("./checkpoints/ISCSR_x2_0920_1337.pth", map_location=device, weights_only=False)
     
-def main():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    net.load_state_dict(state_dict['model_state_dict'])
+    net.eval()
+    
+    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', scale)
+    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', scale)
+    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', scale)
+    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', scale)
+    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', scale)
 
-    val_loader1 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5')
-    val_loader2 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14')
-    val_loader3 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100')
-    val_loader4 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100')
-    val_loader5 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109')
-
-    result_set5 = val_metrics(val_loader1, 2, device, clip_ratio=1)
+    result_set5 = validate_metrics(net, val_loader_set5, scale, device, 0.8)
     print(f'Set5: PSNR: {result_set5["psnr"]:.2f}, SSIM: {result_set5["ssim"]:.4f}')
-    
-    result_set14 = val_metrics(val_loader2, 2, device, clip_ratio=1)
+
+    result_set14 = validate_metrics(net, val_loader_set14, scale, device, 0.8)
     print(f'Set14: PSNR: {result_set14["psnr"]:.2f}, SSIM: {result_set14["ssim"]:.4f}')
 
-    result_b100 = val_metrics(val_loader3, 2, device, clip_ratio=1)
+    result_b100 = validate_metrics(net, val_loader_b100, scale, device, 0.8)
     print(f'B100: PSNR: {result_b100["psnr"]:.2f}, SSIM: {result_b100["ssim"]:.4f}')
-    
-    result_u100 = val_metrics(val_loader4, 2, device, clip_ratio=1)
+
+    result_u100 = validate_metrics(net, val_loader_u100, scale, device, 0.8)
     print(f'U100: PSNR: {result_u100["psnr"]:.2f}, SSIM: {result_u100["ssim"]:.4f}')
-    
-    result_m109 = val_metrics(val_loader5, 2, device, clip_ratio=1)
-    print(f'M109: PSNR: {result_m109["psnr"]:.2f}, SSIM: {result_m109["ssim"]:.4f}') 
-    
-if __name__ == "__main__":
-    main()
+
+    result_div2k = validate_metrics(net, val_loader_m109, scale, device, 0.8)
+    print(f'M109: PSNR: {result_div2k["psnr"]:.2f}, SSIM: {result_div2k["ssim"]:.4f}') 
