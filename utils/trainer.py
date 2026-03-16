@@ -13,9 +13,11 @@ def train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, ep
         
         hr_img = hr_img.to(device).float()
         lr_img, hr_img = augmentor(hr_img)
-        hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.0)
+        hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.)
         
+        lr_img = lr_img.div(255.)
         sr_img = model(lr_img)
+
         loss = loss_func(sr_img, hr_img)
         loss.backward()
         
@@ -37,9 +39,11 @@ def validate_epoch(model, val_loader, loss_func, device):
         for lr_img, hr_img in vpbar:
                 
             lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.0)
+            hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.)
             
+            lr_img = lr_img.div(255.)
             sr_img = model(lr_img)           
+            
             loss = loss_func(sr_img, hr_img)
             val_loss += loss.item()
             
