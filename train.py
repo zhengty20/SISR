@@ -63,7 +63,7 @@ def main():
 
 
     # 训练循环
-    best_val_loss = 10
+    best_val_loss = 1000
 
     logger.info("Begin Training")
     for epoch in range(args.epochs):

@@ -13,9 +13,7 @@ class Block(nn.Module):
         self.filter1 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=3, padding=1, bias=bias, groups=in_dim)
         self.projection2 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=1, padding=0, bias=bias)
         self.filter2 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=3, padding=1, bias=bias, groups=in_dim)
-        self.act = nn.ReLU(inplace=True)
-
-        self.initialize_block_weights()
+        self.act = nn.PReLU(num_parameters=self.mid_dim, init=0.25)
 
     def forward(self, x):
 
@@ -38,19 +36,6 @@ class Block(nn.Module):
         total += sum(p.numel() for p in self.filter2.parameters())
 
         return total
-    
-    def initialize_block_weights(self):
-
-        nn.init.kaiming_normal_(self.projection1.weight, mode='fan_out', nonlinearity='linear')
-        nn.init.kaiming_normal_(self.filter1.weight, mode='fan_out', nonlinearity='relu')
-        nn.init.kaiming_normal_(self.projection2.weight, mode='fan_out', nonlinearity='linear')
-        nn.init.kaiming_normal_(self.filter2.weight, mode='fan_out', nonlinearity='relu')
-
-        if self.bias:
-            nn.init.constant_(self.filter1.bias, 0)
-            nn.init.constant_(self.filter2.bias, 0)
-            nn.init.constant_(self.projection1.bias, 0)
-            nn.init.constant_(self.projection2.bias, 0)
 
 class DPSR(nn.Module):
 
@@ -97,23 +82,8 @@ class DPSR(nn.Module):
         total += sum(p.numel() for p in self.tail2.parameters())
 
         return total
-    
-    def initialize_weights(self):
-
-        nn.init.kaiming_normal_(self.head.weight, mode='fan_out', nonlinearity='linear')
-        nn.init.kaiming_normal_(self.tail1.weight, mode='fan_out', nonlinearity='linear')
-        nn.init.kaiming_normal_(self.tail2.weight, mode='fan_out', nonlinearity='linear')
-
-
-        if self.bias:
-            nn.init.constant_(self.head1.bias, 0)
-            nn.init.constant_(self.tail1.bias, 0)
-            nn.init.constant_(self.tail2.bias, 0)
-
-        
-        nn.init.constant_(self.alpha, 0.1)
 
 if __name__ == '__main__':
     
-    model = DPSR(2, 3, 36, 4, bias=False)
+    model = DPSR(2, 3, 32, 4, bias=False)
     print(f"参数数量: {model.param_num()}")

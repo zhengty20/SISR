@@ -7,7 +7,7 @@ def train_parser():
     parser.add_argument('--model_name', type=str, default='DPSR', help='模型名称')
     parser.add_argument('--scale', type=int, default=2, choices=[2, 3, 4], help='超分倍数')
     parser.add_argument('--channel_nums', type=int, default=32, help='通道数')
-    parser.add_argument('--num_blocks', type=int, default=5, help='ECB块数')
+    parser.add_argument('--num_blocks', type=int, default=4, help='ECB块数')
     parser.add_argument('--epochs', type=int, default=150, help='训练轮数')
     parser.add_argument('--batch_size', type=int, default=64, help='批次大小')
     parser.add_argument('--lr', type=float, default=3e-3, help='初始学习率')
