@@ -52,10 +52,10 @@ class Block(nn.Module):
             nn.init.constant_(self.projection1.bias, 0)
             nn.init.constant_(self.projection2.bias, 0)
 
-class ISCSR(nn.Module):
+class DPSR(nn.Module):
 
     def __init__(self, scale, in_dim, fea_dim, num_blocks=2, bias=True):
-        super(ISCSR, self).__init__()
+        super(DPSR, self).__init__()
 
         self.scale = scale
         self.bias = bias
@@ -115,5 +115,5 @@ class ISCSR(nn.Module):
 
 if __name__ == '__main__':
     
-    model = ISCSR(2, 3, 36, 4, bias=False)
+    model = DPSR(2, 3, 36, 4, bias=False)
     print(f"参数数量: {model.param_num()}")

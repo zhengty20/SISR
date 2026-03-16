@@ -10,8 +10,7 @@ import copy
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import ISCSR, QISCSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, transfer_weights, \
-create_logger, create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss
 
 def main():
 

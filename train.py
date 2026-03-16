@@ -2,20 +2,21 @@ import os
 import sys
 import torch
 import torch.optim as optim
+
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
+
 import copy
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from models import ISCSR
+from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss
 
 def main():
 
     args = train_parser()
-    
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
     
     # 创建logger
@@ -35,7 +36,7 @@ def main():
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
-    model = ISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    model = DPSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
 
     # 统计模型参数量
     total_params = model.param_num()
@@ -120,7 +121,7 @@ def main():
     logger.log_training_finished()
 
     logger.log_testing_start("Best Model")
-    net = ISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    net = DPSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict['model_state_dict'])

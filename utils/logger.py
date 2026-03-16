@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-class TrainingLogger:
+class Logger:
     def __init__(self, log_dir="./logs", experiment_name=None):
         """
         初始化训练日志记录器
@@ -131,4 +131,4 @@ def create_logger(log_dir="./logs", model_name=None, scale=None):
     timestamp = datetime.now().strftime("%m%d_%H%M")
     experiment_name = f"{model_name}_x{scale}_{timestamp}"
     
-    return TrainingLogger(log_dir, experiment_name) 
+    return Logger(log_dir, experiment_name) 

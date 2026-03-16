@@ -1,11 +1,8 @@
 import torch
 from tqdm import tqdm
 
-from utils import create_val_loader, metrics
-from models import usm_interpolation, ISCSR
-
-scale = 2
-device = 'cuda'
+from utils import create_val_loader, metrics, test_parser
+from models import usm_interpolation, DPSR
 
 def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
     
@@ -49,31 +46,32 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
 
 if __name__ == '__main__':
 
-    scale = 2
+    args = test_parser()
+    device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
-    net = ISCSR(scale = 2, in_dim = 3, fea_dim = 32, num_blocks = 5, bias = False).to(device)
+    net = DPSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
     state_dict = torch.load("./checkpoints/ISCSR_x2_0920_1337.pth", map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict['model_state_dict'])
     net.eval()
     
-    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', scale)
-    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', scale)
-    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', scale)
-    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', scale)
-    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', scale)
+    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale)
+    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale)
+    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale)
+    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale)
+    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale)
 
-    result_set5 = validate_metrics(net, val_loader_set5, scale, device, 0.8)
+    result_set5 = validate_metrics(net, val_loader_set5, args.scale, device, 0.8)
     print(f'Set5: PSNR: {result_set5["psnr"]:.2f}, SSIM: {result_set5["ssim"]:.4f}')
 
-    result_set14 = validate_metrics(net, val_loader_set14, scale, device, 0.8)
+    result_set14 = validate_metrics(net, val_loader_set14, args.scale, device, 0.8)
     print(f'Set14: PSNR: {result_set14["psnr"]:.2f}, SSIM: {result_set14["ssim"]:.4f}')
 
-    result_b100 = validate_metrics(net, val_loader_b100, scale, device, 0.8)
+    result_b100 = validate_metrics(net, val_loader_b100, args.scale, device, 0.8)
     print(f'B100: PSNR: {result_b100["psnr"]:.2f}, SSIM: {result_b100["ssim"]:.4f}')
 
-    result_u100 = validate_metrics(net, val_loader_u100, scale, device, 0.8)
+    result_u100 = validate_metrics(net, val_loader_u100, args.scale, device, 0.8)
     print(f'U100: PSNR: {result_u100["psnr"]:.2f}, SSIM: {result_u100["ssim"]:.4f}')
 
-    result_div2k = validate_metrics(net, val_loader_m109, scale, device, 0.8)
+    result_div2k = validate_metrics(net, val_loader_m109, args.scale, device, 0.8)
     print(f'M109: PSNR: {result_div2k["psnr"]:.2f}, SSIM: {result_div2k["ssim"]:.4f}') 

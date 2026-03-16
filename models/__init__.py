@@ -1,11 +1,11 @@
 from .ARMSR import ARMSR
-from .ISCSR import ISCSR
+from .DPSR import DPSR
 from .QISCSR import QISCSR
 from .Usm import usm_interpolation
 
 __all__ = [
     'ARMSR',
-    'ISCSR',
+    'DPSR',
     'QISCSR',
     'usm_interpolation',
 ]
