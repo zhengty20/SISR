@@ -1,7 +1,7 @@
 import torch
 from typing import Tuple, Dict
 from torch import Tensor
-from .Usm import usm_interpolation
+from .usm import usm_interpolation
 
 class ARMSR:
     def __init__(self, patch_size: Tuple[int, int], scale_factor: int, overlap: int = 0, device: str = 'cuda'):

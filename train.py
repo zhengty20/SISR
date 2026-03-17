@@ -63,13 +63,12 @@ def main():
         total_epochs=args.epochs,
         warmup_epochs=warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=1e-7
+        warmup_start_lr=1e-4
     )
 
     # 记录训练开始信息
     logger.log_training_start(args, total_params, len(train_loader), 
                               len(val_loader_set5) + len(val_loader_set14) + len(val_loader_b100) + len(val_loader_u100) + len(val_loader_m109))
-
 
     # 训练循环
     # best_val_loss = 10

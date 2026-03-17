@@ -14,7 +14,7 @@ def train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, ep
         
         hr_img = hr_img.to(device).float()
         lr_img, hr_img = augmentor(hr_img)
-        hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.)
+        hr_img = (hr_img - usm_interpolation(lr_img, model.scale, bit8=True)).div(255.)
         
         lr_img = lr_img.div(255.)
         sr_img = model(lr_img)
@@ -40,7 +40,7 @@ def validate_epoch(model, val_loader, loss_func, device):
         for lr_img, hr_img in vpbar:
                 
             lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            hr_img = (hr_img - usm_interpolation(lr_img, model.scale)).div(255.)
+            hr_img = (hr_img - usm_interpolation(lr_img, model.scale, bit8=True)).div(255.)
             
             lr_img = lr_img.div(255.)
             sr_img = model(lr_img)           
@@ -64,7 +64,7 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
             
             lr_img_norm = lr_img.div(255.)
             sr_img_norm = model(lr_img_norm)
-            sr_img = ((sr_img_norm * 255.).round() + usm_interpolation(lr_img, model.scale)).clamp(0, 255)
+            sr_img = ((sr_img_norm * 255.).round() + usm_interpolation(lr_img, model.scale, bit8=True)).clamp(0, 255)
             
             crop_border = scale
             sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
