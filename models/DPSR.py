@@ -13,17 +13,18 @@ class Block(nn.Module):
         self.filter1 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=3, padding=1, bias=bias, groups=in_dim)
         self.projection2 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=1, padding=0, bias=bias)
         self.filter2 = nn.Conv2d(self.mid_dim, self.mid_dim, kernel_size=3, padding=1, bias=bias, groups=in_dim)
-        self.act = nn.PReLU(num_parameters=self.mid_dim, init=0.25)
+        self.act1 = nn.PReLU(num_parameters=self.mid_dim, init=0.25)
+        self.act2 = nn.PReLU(num_parameters=self.mid_dim, init=0.25)
 
     def forward(self, x):
 
         y = self.projection1(x) 
         y = self.filter1(y)
-        y = self.act(y)
+        y = self.act1(y)
         
         y = self.projection2(y)
         y = self.filter2(y)
-        y = self.act(y) + x
+        y = self.act2(y) + x
 
         return y
 
@@ -55,7 +56,8 @@ class DPSR(nn.Module):
         self.tail2 = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=1, padding=0, bias=bias)
 
         self.upsampler = nn.PixelShuffle(scale)
-        self.alpha = nn.Parameter(torch.zeros(1, 3, 1, 1))
+        # self.alpha = nn.Parameter(torch.zeros(1, 3, 1, 1))
+        self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
         
     def forward(self, x):
         

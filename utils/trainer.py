@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 from utils import metrics
 from models import usm_interpolation
+import torch.nn.functional as F
 
 def train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, epoch):
     """训练一个epoch"""
@@ -52,7 +53,8 @@ def validate_epoch(model, val_loader, loss_func, device):
 def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
     
     model.eval()
-    metrics_list = []  # 存储(psnr, ssim)对
+    # 存储(psnr, ssim)对
+    metrics_list = []
 
     with torch.no_grad():
         vpbar = tqdm(val_loader, desc='metric-validating', leave=False)
@@ -83,6 +85,31 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=0.8):
     # 分别计算选中样本的psnr和ssim平均值
     psnr_list = [item[0] for item in selected_metrics]
     ssim_list = [item[1] for item in selected_metrics]
+
+    return {
+        'psnr': sum(psnr_list) / len(psnr_list),
+        'ssim': sum(ssim_list) / len(ssim_list)
+    }
+
+def basic_metrics(val_loader, scale, device):
+    
+    # 存储(psnr, ssim)对
+    metrics_list = []
+
+    vpbar = tqdm(val_loader, desc='basic-metrics-validating', leave=False)
+    for lr_img, hr_img in vpbar:
+            
+        lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
+        sr_img = F.interpolate(lr_img, scale_factor=scale, mode='bicubic', align_corners=False)
+        
+        psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
+        ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
+        
+        metrics_list.append((psnr, ssim))
+    
+    # 分别计算psnr和ssim平均值
+    psnr_list = [item[0] for item in metrics_list]
+    ssim_list = [item[1] for item in metrics_list]
 
     return {
         'psnr': sum(psnr_list) / len(psnr_list),

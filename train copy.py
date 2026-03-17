@@ -12,8 +12,7 @@ import copy
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import DPSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss, ImprovedWarmupPlateauScheduler
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss
 
 def main():
 
@@ -56,17 +55,15 @@ def main():
     ema = ExponentialMovingAverage(model.parameters(), decay=0.999)
     
     # 学习率调度器
-    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr)
-    scheduler = ImprovedWarmupPlateauScheduler(optimizer, warmup_epochs=args.epochs * 0.1, plateau_scheduler=optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr))
-
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr)
+   
     # 记录训练开始信息
     logger.log_training_start(args, total_params, len(train_loader), 
                               len(val_loader_set5) + len(val_loader_set14) + len(val_loader_b100) + len(val_loader_u100) + len(val_loader_m109))
 
 
     # 训练循环
-    # best_val_loss = 10
-    best_set5_snr = 0.0
+    best_val_loss = 10
 
     logger.info("Begin Training")
     for epoch in range(args.epochs):
@@ -89,11 +86,10 @@ def main():
             val_loss /= 5
 
         logger.log_epoch_val(epoch, args.epochs, val_loss)
-        val_metrics_set5 = validate_metrics(ema_model, val_loader_set5, args.scale, device, 1)
         
-        if val_metrics_set5['psnr'] > best_set5_snr:
+        if val_loss < best_val_loss:
             
-            best_set5_snr = val_metrics_set5['psnr']
+            best_val_loss = val_loss
             ema_model = copy.deepcopy(model)
             
             torch.save({
@@ -144,21 +140,6 @@ def main():
     logger.log_validation_results("U100", val_metrics)
     
     val_metrics = validate_metrics(net, val_loader_m109, args.scale, device, 1)
-    logger.log_validation_results("M109", val_metrics)
-
-    val_metrics = basic_metrics(val_loader_set5, args.scale, device)
-    logger.log_validation_results("Set5", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_set14, args.scale, device)
-    logger.log_validation_results("Set14", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_b100, args.scale, device)
-    logger.log_validation_results("B100", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_u100, args.scale, device)
-    logger.log_validation_results("U100", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_m109, args.scale, device)
     logger.log_validation_results("M109", val_metrics)
 
     # 关闭logger
