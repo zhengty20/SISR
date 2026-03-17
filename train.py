@@ -8,12 +8,13 @@ from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 
 import copy
+import math
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss, ImprovedWarmupPlateauScheduler
+create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss, WarmupCosineScheduler
 
 def main():
 
@@ -55,9 +56,15 @@ def main():
     # EMA
     ema = ExponentialMovingAverage(model.parameters(), decay=0.999)
     
-    # 学习率调度器
-    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr)
-    scheduler = ImprovedWarmupPlateauScheduler(optimizer, warmup_epochs=args.epochs * 0.1, plateau_scheduler=optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr))
+    # 学习率调度器：warmup + cosine annealing
+    warmup_epochs = max(1, int(math.ceil(args.epochs * 0.1)))
+    scheduler = WarmupCosineScheduler(
+        optimizer=optimizer,
+        total_epochs=args.epochs,
+        warmup_epochs=warmup_epochs,
+        eta_min=args.minlr,
+        warmup_start_lr=1e-7
+    )
 
     # 记录训练开始信息
     logger.log_training_start(args, total_params, len(train_loader), 
@@ -89,7 +96,7 @@ def main():
             val_loss /= 5
 
         logger.log_epoch_val(epoch, args.epochs, val_loss)
-        val_metrics_set5 = validate_metrics(ema_model, val_loader_set5, args.scale, device, 1)
+        val_metrics_set5 = validate_metrics(model, val_loader_set5, args.scale, device, 1)
         
         if val_metrics_set5['psnr'] > best_set5_snr:
             

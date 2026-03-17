@@ -4,7 +4,7 @@ from .trainer import train_epoch, validate_epoch, validate_metrics, transfer_wei
 from .metrics import MixedLoss
 from .dataloader import create_train_loader, create_val_loader, SRKorniaAugmentor
 from .logger import Logger, create_logger
-from .schedulers import ImprovedWarmupPlateauScheduler
+from .schedulers import WarmupCosineScheduler
 
 __all__ = [
     'train_parser',
@@ -20,6 +20,6 @@ __all__ = [
     'MixedLoss',
     'Logger',
     'create_logger',
-    'ImprovedWarmupPlateauScheduler'
+    'WarmupCosineScheduler'
 
 ]

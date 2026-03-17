@@ -260,284 +260,75 @@ class KneeLRScheduler_Restart(_LRScheduler):
         is not the optimizer.
         """
         return {key: value for key, value in self.__dict__.items() if key != 'optimizer'}
-    
-class WarmupPlateauScheduler:
-    def __init__(self, optimizer, warmup_epochs, plateau_scheduler):
+
+class WarmupCosineScheduler:
+    """Linear warmup followed by CosineAnnealingLR."""
+    def __init__(self, optimizer, total_epochs, warmup_epochs=0, eta_min=0.0, warmup_start_lr=1e-7):
         self.optimizer = optimizer
-        self.warmup_epochs = warmup_epochs
-        self.plateau_scheduler = plateau_scheduler
+        self.total_epochs = int(total_epochs)
+        self.warmup_epochs = int(warmup_epochs)
+        self.eta_min = eta_min
+        self.warmup_start_lr = warmup_start_lr
         self.current_epoch = 0
         self.base_lrs = [group['lr'] for group in optimizer.param_groups]
-        
-    def step(self, metrics=None):
+        self.cosine_scheduler = None
+
+        if self.total_epochs <= 0:
+            raise ValueError("total_epochs must be positive")
+        if self.warmup_epochs < 0:
+            raise ValueError("warmup_epochs must be non-negative")
+        if self.warmup_epochs >= self.total_epochs:
+            raise ValueError("warmup_epochs must be smaller than total_epochs")
+
+        if self.warmup_epochs > 0:
+            for param_group in self.optimizer.param_groups:
+                param_group['lr'] = self.warmup_start_lr
+
+    def _build_cosine(self):
+        if self.cosine_scheduler is None:
+            cosine_epochs = self.total_epochs - self.warmup_epochs
+            self.cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                self.optimizer,
+                T_max=cosine_epochs,
+                eta_min=self.eta_min
+            )
+
+    def step(self):
         self.current_epoch += 1
-        
-        # Warmup 阶段：线性增加学习率
+
         if self.current_epoch <= self.warmup_epochs:
             progress = self.current_epoch / self.warmup_epochs
             for i, param_group in enumerate(self.optimizer.param_groups):
-                param_group['lr'] = self.base_lrs[i] * 0.1 * progress
+                param_group['lr'] = self.warmup_start_lr + (self.base_lrs[i] - self.warmup_start_lr) * progress
             return
-        
-        # Plateau 阶段：使用 ReduceLROnPlateau
-        if metrics is not None:
-            self.plateau_scheduler.step(metrics)
-        else:
-            # 如果没有提供指标，则按 epoch 更新（不推荐）
-            self.plateau_scheduler.step()
 
-class ImprovedWarmupPlateauScheduler:
-    """
-    改进的Warmup + Plateau学习率调度器
-    特点：
-    1. 支持多种warmup策略（线性、余弦、指数）
-    2. 更灵活的warmup配置
-    3. 完整的状态保存和恢复
-    4. 更好的学习率调整策略
-    """
-    def __init__(self, optimizer, warmup_epochs, plateau_scheduler, 
-                 warmup_start_lr=1e-7, warmup_strategy='linear', 
-                 verbose=False):
-        """
-        Args:
-            optimizer: PyTorch优化器
-            warmup_epochs: Warmup阶段的epoch数量
-            plateau_scheduler: ReduceLROnPlateau调度器实例
-            warmup_start_lr: Warmup开始时的学习率（默认很小的值）
-            warmup_strategy: Warmup策略 ('linear', 'cosine', 'exponential')
-            verbose: 是否打印详细信息
-        """
-        self.optimizer = optimizer
-        self.warmup_epochs = warmup_epochs
-        self.plateau_scheduler = plateau_scheduler
-        self.warmup_start_lr = warmup_start_lr
-        self.warmup_strategy = warmup_strategy
-        self.verbose = verbose
-        
-        # 保存初始学习率
-        self.base_lrs = [group['lr'] for group in optimizer.param_groups]
-        self.current_epoch = 0
-        self.warmup_finished = False
-        
-        # 验证warmup策略
-        valid_strategies = ['linear', 'cosine', 'exponential']
-        if warmup_strategy not in valid_strategies:
-            raise ValueError(f"warmup_strategy must be one of {valid_strategies}")
-            
-        # 初始化学习率为warmup起始值
-        if warmup_epochs > 0:
-            for param_group in self.optimizer.param_groups:
-                param_group['lr'] = warmup_start_lr
-    
-    def _get_warmup_lr(self, epoch):
-        """根据不同策略计算warmup阶段的学习率"""
-        if self.warmup_epochs == 0:
-            return self.base_lrs
-        
-        progress = epoch / self.warmup_epochs
-        lrs = []
-        
-        for base_lr in self.base_lrs:
-            if self.warmup_strategy == 'linear':
-                # 线性增长：从warmup_start_lr到base_lr
-                lr = self.warmup_start_lr + (base_lr - self.warmup_start_lr) * progress
-            elif self.warmup_strategy == 'cosine':
-                # 余弦增长：平滑的S形曲线
-                lr = self.warmup_start_lr + (base_lr - self.warmup_start_lr) * (1 - math.cos(math.pi * progress)) / 2
-            elif self.warmup_strategy == 'exponential':
-                # 指数增长：慢启动，后期快速增长
-                lr = self.warmup_start_lr * (base_lr / self.warmup_start_lr) ** progress
-            else:
-                lr = base_lr
-            
-            lrs.append(lr)
-        
-        return lrs
-    
-    def step(self, metrics=None):
-        """更新学习率"""
-        self.current_epoch += 1
-        
-        # Warmup阶段
-        if self.current_epoch <= self.warmup_epochs:
-            lrs = self._get_warmup_lr(self.current_epoch)
-            for i, param_group in enumerate(self.optimizer.param_groups):
-                param_group['lr'] = lrs[i]
-            
-            if self.verbose:
-                print(f"Warmup Epoch {self.current_epoch}/{self.warmup_epochs}, "
-                      f"LR: {lrs[0]:.2e} ({self.warmup_strategy} strategy)")
-            return
-        
-        # 标记warmup结束
-        if not self.warmup_finished:
-            self.warmup_finished = True
-            # 确保学习率设置为目标值
-            for i, param_group in enumerate(self.optimizer.param_groups):
-                param_group['lr'] = self.base_lrs[i]
-            if self.verbose:
-                print(f"Warmup完成，切换到Plateau调度器，LR: {self.base_lrs[0]:.2e}")
-        
-        # Plateau阶段：使用ReduceLROnPlateau
-        if metrics is not None:
-            old_lr = self.optimizer.param_groups[0]['lr']
-            self.plateau_scheduler.step(metrics)
-            new_lr = self.optimizer.param_groups[0]['lr']
-            
-            if self.verbose and old_lr != new_lr:
-                print(f"Plateau调度器更新学习率：{old_lr:.2e} -> {new_lr:.2e}")
-        else:
-            if self.verbose:
-                print("警告：Plateau阶段需要提供metrics参数")
-    
+        self._build_cosine()
+        self.cosine_scheduler.step()
+
     def get_lr(self):
-        """获取当前学习率"""
         return [group['lr'] for group in self.optimizer.param_groups]
-    
+
     def state_dict(self):
-        """保存调度器状态"""
-        return {
+        state = {
             'current_epoch': self.current_epoch,
-            'warmup_finished': self.warmup_finished,
-            'base_lrs': self.base_lrs,
+            'total_epochs': self.total_epochs,
             'warmup_epochs': self.warmup_epochs,
+            'eta_min': self.eta_min,
             'warmup_start_lr': self.warmup_start_lr,
-            'warmup_strategy': self.warmup_strategy,
-            'plateau_state': self.plateau_scheduler.state_dict()
-        }
-    
-    def load_state_dict(self, state_dict):
-        """加载调度器状态"""
-        self.current_epoch = state_dict['current_epoch']
-        self.warmup_finished = state_dict['warmup_finished']
-        self.base_lrs = state_dict['base_lrs']
-        self.warmup_epochs = state_dict['warmup_epochs']
-        self.warmup_start_lr = state_dict['warmup_start_lr']
-        self.warmup_strategy = state_dict['warmup_strategy']
-        self.plateau_scheduler.load_state_dict(state_dict['plateau_state'])
-    
-    def get_last_lr(self):
-        """获取上一次的学习率（兼容PyTorch的_LRScheduler接口）"""
-        return self.get_lr()
-
-
-class AdaptiveWarmupPlateauScheduler:
-    """
-    自适应Warmup + Plateau学习率调度器
-    特点：
-    1. 根据训练损失自动调整warmup长度
-    2. 动态监控训练稳定性
-    3. 支持early stopping for warmup
-    """
-    def __init__(self, optimizer, max_warmup_epochs, plateau_scheduler,
-                 warmup_start_lr=1e-7, loss_threshold=0.1, 
-                 stable_epochs=3, verbose=False):
-        """
-        Args:
-            optimizer: PyTorch优化器
-            max_warmup_epochs: 最大warmup epoch数
-            plateau_scheduler: ReduceLROnPlateau调度器实例
-            warmup_start_lr: Warmup开始时的学习率
-            loss_threshold: 损失稳定性阈值
-            stable_epochs: 连续稳定epoch数量
-            verbose: 是否打印详细信息
-        """
-        self.optimizer = optimizer
-        self.max_warmup_epochs = max_warmup_epochs
-        self.plateau_scheduler = plateau_scheduler
-        self.warmup_start_lr = warmup_start_lr
-        self.loss_threshold = loss_threshold
-        self.stable_epochs = stable_epochs
-        self.verbose = verbose
-        
-        self.base_lrs = [group['lr'] for group in optimizer.param_groups]
-        self.current_epoch = 0
-        self.warmup_finished = False
-        self.loss_history = []
-        self.stable_count = 0
-        
-        # 初始化学习率
-        for param_group in self.optimizer.param_groups:
-            param_group['lr'] = warmup_start_lr
-    
-    def _is_training_stable(self, current_loss):
-        """检查训练是否稳定"""
-        if len(self.loss_history) < 2:
-            return False
-        
-        # 计算最近几个epoch的损失变化
-        recent_losses = self.loss_history[-self.stable_epochs:]
-        if len(recent_losses) < self.stable_epochs:
-            return False
-        
-        # 检查损失是否在阈值范围内稳定
-        loss_changes = [abs(recent_losses[i] - recent_losses[i-1]) / recent_losses[i-1] 
-                       for i in range(1, len(recent_losses))]
-        
-        return all(change < self.loss_threshold for change in loss_changes)
-    
-    def step(self, train_loss=None, val_metrics=None):
-        """更新学习率"""
-        self.current_epoch += 1
-        
-        if train_loss is not None:
-            self.loss_history.append(train_loss)
-        
-        # Warmup阶段
-        if not self.warmup_finished and self.current_epoch <= self.max_warmup_epochs:
-            # 线性增长学习率
-            progress = self.current_epoch / self.max_warmup_epochs
-            lrs = [self.warmup_start_lr + (base_lr - self.warmup_start_lr) * progress 
-                   for base_lr in self.base_lrs]
-            
-            for i, param_group in enumerate(self.optimizer.param_groups):
-                param_group['lr'] = lrs[i]
-            
-            # 检查是否可以提前结束warmup
-            if (train_loss is not None and 
-                self.current_epoch >= self.stable_epochs and 
-                self._is_training_stable(train_loss)):
-                self.stable_count += 1
-                if self.stable_count >= self.stable_epochs:
-                    self.warmup_finished = True
-                    if self.verbose:
-                        print(f"训练稳定，在第{self.current_epoch}个epoch提前结束warmup")
-            else:
-                self.stable_count = 0
-            
-            if self.verbose and not self.warmup_finished:
-                print(f"Adaptive Warmup Epoch {self.current_epoch}/{self.max_warmup_epochs}, "
-                      f"LR: {lrs[0]:.2e}, Loss: {train_loss:.4f if train_loss else 'N/A'}")
-            return
-        
-        # 结束warmup阶段
-        if not self.warmup_finished:
-            self.warmup_finished = True
-            for i, param_group in enumerate(self.optimizer.param_groups):
-                param_group['lr'] = self.base_lrs[i]
-            if self.verbose:
-                print(f"Warmup结束，切换到Plateau调度器")
-        
-        # Plateau阶段
-        if val_metrics is not None:
-            self.plateau_scheduler.step(val_metrics)
-    
-    def state_dict(self):
-        """保存调度器状态"""
-        return {
-            'current_epoch': self.current_epoch,
-            'warmup_finished': self.warmup_finished,
             'base_lrs': self.base_lrs,
-            'loss_history': self.loss_history,
-            'stable_count': self.stable_count,
-            'plateau_state': self.plateau_scheduler.state_dict()
         }
-    
+        if self.cosine_scheduler is not None:
+            state['cosine_state'] = self.cosine_scheduler.state_dict()
+        return state
+
     def load_state_dict(self, state_dict):
-        """加载调度器状态"""
         self.current_epoch = state_dict['current_epoch']
-        self.warmup_finished = state_dict['warmup_finished']
+        self.total_epochs = state_dict['total_epochs']
+        self.warmup_epochs = state_dict['warmup_epochs']
+        self.eta_min = state_dict['eta_min']
+        self.warmup_start_lr = state_dict['warmup_start_lr']
         self.base_lrs = state_dict['base_lrs']
-        self.loss_history = state_dict['loss_history']
-        self.stable_count = state_dict['stable_count']
-        self.plateau_scheduler.load_state_dict(state_dict['plateau_state'])
+
+        if 'cosine_state' in state_dict:
+            self._build_cosine()
+            self.cosine_scheduler.load_state_dict(state_dict['cosine_state'])
