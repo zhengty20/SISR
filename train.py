@@ -2,19 +2,17 @@ import os
 import sys
 import torch
 import torch.optim as optim
+import copy
+import math
 
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
-
-import copy
-import math
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss, WarmupCosineScheduler
+create_train_loader, create_val_loader, SRKorniaAugmentor, WarmupCosineScheduler, CharbonnierLoss
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
 
@@ -48,7 +46,7 @@ def main():
     augmentor = augmentor.to(device)
     
     # 损失函数  
-    loss_func = MixedLoss()
+    loss_func = CharbonnierLoss(eps=1e-8, reduction='mean')
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
@@ -151,6 +149,8 @@ def main():
     
     val_metrics = validate_metrics(net, val_loader_m109, args.scale, device, 1)
     logger.log_validation_results("M109", val_metrics)
+
+    logger.log_testing_start("Bilinear Interpolation")
 
     val_metrics = basic_metrics(val_loader_set5, args.scale, device)
     logger.log_validation_results("Set5", val_metrics)

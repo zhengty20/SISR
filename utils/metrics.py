@@ -7,8 +7,8 @@ def calculate_psnr(img1, img2):
 
     assert img1.shape == img2.shape, f'Image shapes are different: {img1.shape}, {img2.shape}.'
 
-    img1 = to_y_channel(img1).clamp(0, 255).round().to(torch.float64)
-    img2 = to_y_channel(img2).clamp(0, 255).round().to(torch.float64)
+    img1 = to_y_channel(img1).to(torch.float32)
+    img2 = to_y_channel(img2).to(torch.float32)
 
     mse = torch.mean((img1 - img2) ** 2)
     if mse == 0:
@@ -22,8 +22,8 @@ def calculate_ssim(img1, img2):
 
     assert img1.shape == img2.shape, f'Image shapes are different: {img1.shape}, {img2.shape}.'
 
-    img1 = to_y_channel(img1).unsqueeze(0).unsqueeze(0).clamp(0, 255).round().to(torch.float64)
-    img2 = to_y_channel(img2).unsqueeze(0).unsqueeze(0).clamp(0, 255).round().to(torch.float64)
+    img1 = to_y_channel(img1).unsqueeze(0).unsqueeze(0).to(torch.float32)
+    img2 = to_y_channel(img2).unsqueeze(0).unsqueeze(0).to(torch.float32)
 
     ssim = pssim(img1, img2, data_range=255.0)
 
@@ -61,3 +61,26 @@ class MixedLoss(nn.Module):
         target_fft = fft.fft2(target_f, norm='ortho')
         loss = torch.abs(pred_fft - target_fft)
         return loss.mean()
+
+class CharbonnierLoss(nn.Module):
+    """Charbonnier Loss (aka L1-L2 loss)"""
+    def __init__(self, eps=1e-8, reduction='mean'):
+        super(CharbonnierLoss, self).__init__()
+        self.eps = eps
+        self.reduction = reduction
+
+    def forward(self, pred, target):
+        # Calculate the squared difference
+        diff = pred - target
+        squared_diff = diff * diff
+        
+        # Apply the Charbonnier formula
+        loss = torch.sqrt(squared_diff + self.eps)
+        
+        # Apply reduction
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        else:
+            return loss
