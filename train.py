@@ -3,14 +3,13 @@ import sys
 import torch
 import torch.optim as optim
 import copy
-import math
 
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, SRKorniaAugmentor, WarmupCosineScheduler, MixedLoss
+create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -23,13 +22,26 @@ def main():
     logger = create_logger(log_dir="./logs", model_name=args.model_name, scale=args.scale)
     logger.info(f"使用设备: {device}")
 
-    train_loader = create_train_loader('/home/tyzheng/Datasets_pt/train', batch_size=args.batch_size, num_workers=args.num_workers)
+    train_loader = create_train_loader(
+        '/home/tyzheng/Datasets_pt/train',
+        scale=args.scale,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        patch_size=args.patch_size
+    )
                                    
     val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale)
     val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale)
     val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale)
     val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale)
     val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale)
+    val_loaders = {
+        'Set5': val_loader_set5,
+        'Set14': val_loader_set14,
+        'B100': val_loader_b100,
+        'U100': val_loader_u100,
+        'M109': val_loader_m109,
+    }
     
     time_stamp = datetime.now().strftime("%m%d_%H%M")
     # 创建保存目录
@@ -42,9 +54,6 @@ def main():
     total_params = model.param_num()
     logger.info(f"模型总参数量: {total_params:,}")
 
-    augmentor = SRKorniaAugmentor(scale=args.scale)
-    augmentor = augmentor.to(device)
-    
     # 损失函数  
     loss_func = MixedLoss(eps=1e-8, gamma=0)
 
@@ -52,14 +61,13 @@ def main():
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
     
     # EMA
-    ema = ExponentialMovingAverage(model.parameters(), decay=0.999)
+    ema = ExponentialMovingAverage(model.parameters(), decay=args.ema_decay)
     
     # 学习率调度器：warmup + cosine annealing
-    warmup_epochs = 20
     scheduler = WarmupCosineScheduler(
         optimizer=optimizer,
         total_epochs=args.epochs,
-        warmup_epochs=warmup_epochs,
+        warmup_epochs=args.warmup_epochs,
         eta_min=args.minlr,
         warmup_start_lr=5e-5
     )
@@ -75,51 +83,42 @@ def main():
     for epoch in range(args.epochs):
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, epoch)
+        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema)
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
-        ema.update()
-        
+
+        best_candidate = None
         with ema.average_parameters():
-            
-            val_loss = validate_epoch(model, val_loader_set5, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_set14, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_b100, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_u100, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_m109, loss_func, device)
-            val_loss /= 5
+            weighted_val_loss = 0.0
+            total_val_samples = 0
+            for loader in val_loaders.values():
+                loader_loss = validate_epoch(model, loader, loss_func, device)
+                sample_count = len(loader.dataset)
+                weighted_val_loss += loader_loss * sample_count
+                total_val_samples += sample_count
+            val_loss = weighted_val_loss / total_val_samples
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_candidate = copy.deepcopy(model)
 
         logger.log_epoch_val(epoch, args.epochs, val_loss)
         
-        if val_loss < best_val_loss:
-            
-            best_val_loss = val_loss
-            ema_model = copy.deepcopy(model)
-            
+        if best_candidate is not None:
             torch.save({
                 'epoch': epoch + 1,
                 'iteration': (epoch + 1) * len(train_loader),
-                'model_state_dict': ema_model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict()
+                'model_state_dict': best_candidate.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict()
             }, model_path)
             
             logger.log_best_model(val_loss)
 
-            val_metrics_set5 = validate_metrics(ema_model, val_loader_set5, args.scale, device, 1)
-            logger.log_validation_results("Set5", val_metrics_set5)
-            
-            val_metrics_set14 = validate_metrics(ema_model, val_loader_set14, args.scale, device, 1)
-            logger.log_validation_results("Set14", val_metrics_set14)
-            
-            val_metrics_b100 = validate_metrics(ema_model, val_loader_b100, args.scale, device, 1)
-            logger.log_validation_results("B100", val_metrics_b100)
-            
-            val_metrics_u100 = validate_metrics(ema_model, val_loader_u100, args.scale, device, 1)
-            logger.log_validation_results("U100", val_metrics_u100)
-            
-            val_metrics_m109 = validate_metrics(ema_model, val_loader_m109, args.scale, device, 1)
-            logger.log_validation_results("M109", val_metrics_m109)
+            for dataset_name, loader in val_loaders.items():
+                val_metrics = validate_metrics(best_candidate, loader, args.scale, device, 1.0)
+                logger.log_validation_results(dataset_name, val_metrics)
 
         scheduler.step()
     
@@ -132,37 +131,15 @@ def main():
     net.load_state_dict(state_dict['model_state_dict'])
     net.eval()
 
-    val_metrics = validate_metrics(net, val_loader_set5, args.scale, device, 1)
-    logger.log_validation_results("Set5", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_set14, args.scale, device, 1)
-    logger.log_validation_results("Set14", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_b100, args.scale, device, 1)
-    logger.log_validation_results("B100", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_u100, args.scale, device, 1)
-    logger.log_validation_results("U100", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_m109, args.scale, device, 1)
-    logger.log_validation_results("M109", val_metrics)
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = validate_metrics(net, loader, args.scale, device, 1.0)
+        logger.log_validation_results(dataset_name, val_metrics)
 
-    logger.log_testing_start("Bilinear Interpolation")
+    logger.log_testing_start("Bicubic Interpolation")
 
-    val_metrics = basic_metrics(val_loader_set5, args.scale, device)
-    logger.log_validation_results("Set5", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_set14, args.scale, device)
-    logger.log_validation_results("Set14", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_b100, args.scale, device)
-    logger.log_validation_results("B100", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_u100, args.scale, device)
-    logger.log_validation_results("U100", val_metrics)
-    
-    val_metrics = basic_metrics(val_loader_m109, args.scale, device)
-    logger.log_validation_results("M109", val_metrics)
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = basic_metrics(loader, args.scale, device)
+        logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger
     logger.close()

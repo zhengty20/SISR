@@ -10,7 +10,7 @@ import copy
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import ISCSR, QISCSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, SRKorniaAugmentor, MixedLoss
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, MixedLoss
 
 def main():
 
@@ -22,7 +22,13 @@ def main():
     logger = create_logger(log_dir="./logs", model_name=args.model_name, scale=args.scale)
     logger.info(f"使用设备: {device}")
 
-    train_loader = create_train_loader('/home/tyzheng/Datasets_pt/train', batch_size=args.batch_size, num_workers=args.num_workers)
+    train_loader = create_train_loader(
+        '/home/tyzheng/Datasets_pt/train',
+        scale=args.scale,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        patch_size=args.patch_size
+    )
                                    
     val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale)
     val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale)
@@ -42,9 +48,6 @@ def main():
     total_params = model.param_num()
     logger.info(f"模型总参数量: {total_params:,}")
 
-    augmentor = SRKorniaAugmentor(scale=args.scale)
-    augmentor = augmentor.to(device)
-    
     # 损失函数  
     loss_func = MixedLoss()
 
@@ -75,11 +78,10 @@ def main():
 
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, epoch)
+        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema)
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
-        ema.update()
         
         with ema.average_parameters():
             

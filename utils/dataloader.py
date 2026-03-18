@@ -1,182 +1,161 @@
 import os
+import random
+from collections import Counter
+from pathlib import Path
+
 import torch
-import cv2
-import numpy as np
-from torch.utils.data import Dataset, DataLoader
-import torch.nn.functional as F
-import kornia.augmentation as K
+from torch.utils.data import Dataset, WeightedRandomSampler
 
-class SRDataset(Dataset):
-    """超分辨率数据集类"""
-    
-    def __init__(self, hr_dir, lr_dir, scale=2):
-        """
-        Args:
-            hr_dir: 高分辨率图像文件夹路径
-            lr_dir: 低分辨率图像文件夹路径  
-            scale: 超分倍数
-            patch_size: 训练时的patch大小
-            augment: 是否进行数据增强
-        """
-        self.hr_dir = hr_dir
-        self.lr_dir = lr_dir
-        self.scale = scale
-        
-        # 获取图像文件列表
-        self.hr_files = self._get_image_files(hr_dir)
-        self.lr_files = self._get_image_files(lr_dir)
-        
-        # 确保HR和LR文件数量一致
-        assert len(self.hr_files) == len(self.lr_files), \
-            f"HR图像数量({len(self.hr_files)})与LR图像数量({len(self.lr_files)})不匹配"
-    
-    def _get_image_files(self, directory):
-        """获取目录下的图像文件列表"""
-        extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
-        files = []
-        
-        for ext in extensions:
-            files.extend([f for f in os.listdir(directory) 
-                         if f.lower().endswith(ext.lower())])
-        
-        files.sort()
-        return files
-    
-    def __len__(self):
-        return len(self.hr_files)
-    
-    def __getitem__(self, idx):
-        # 读取图像
-        hr_path = os.path.join(self.hr_dir, self.hr_files[idx])
-        lr_path = os.path.join(self.lr_dir, self.lr_files[idx])
-        
-        hr_img = imread_uint(hr_path)  # RGB format
-        lr_img = imread_uint(lr_path)  # RGB format
 
-        lr_tensor = np2tensor(lr_img)
-        hr_tensor = np2tensor(hr_img)
-        return lr_tensor, hr_tensor
+def default_patch_size(scale):
+    return {2: 144, 3: 192, 4: 192}[scale]
 
-def find_dataset_folders(datasets_dir, scale):
-    """
-    查找数据集文件夹
-    
-    Args:
-        datasets_dir: 数据集根目录
-        scale: 超分倍数
-        
-    Returns:
-        dataset_folders: 数据集文件夹列表
-    """
-    dataset_folders = []
-    
-    # 查找HR和LR文件夹
-    hr_dir = os.path.join(datasets_dir, 'HR')
-    lr_dir = os.path.join(datasets_dir, f'LRbicx{scale}')
-    
-    # 检查数据集是否存在
-    if os.path.exists(hr_dir) and os.path.exists(lr_dir):
-        dataset_folders={
-            'name': os.path.basename(datasets_dir),
-            'hr_dir': hr_dir,
-            'lr_dir': lr_dir
-        }
-    
-    return dataset_folders
 
-def create_dataloaders(datasets_dir, scale=3, batch_size=64, num_workers=16, shuffle=True, drop_last=True):
-    """
-    创建数据加载器
-    
-    Args:
-        datasets_dir: 数据集根目录
-        scale: 超分倍数  
-        batch_size: 批次大小
-        num_workers: 数据加载工作进程数
-        shuffle: 是否打乱数据顺序
-        drop_last: 是否丢弃最后不完整的批次
-        
-    Returns:
-        data_loader: 数据加载器
-    """
-    # 查找数据集
-    dataset_folders = find_dataset_folders(datasets_dir, scale)
-    
-    if not dataset_folders:
-        raise ValueError(f"未找到X{scale}数据集!")
-    
-    # 合并所有数据集
-
-    dataset = SRDataset(
-        hr_dir=dataset_folders['hr_dir'],
-        lr_dir=dataset_folders['lr_dir'],
-        scale=scale
-    )
-    
-    data_loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        pin_memory=True,
-        drop_last=drop_last,
-        persistent_workers=True if num_workers > 0 else False,
-        prefetch_factor=2 
-    )
-    
-    return data_loader
-
-def imread_uint(path):
-    '''
-    input: path
-    output: HxWx3(RGB)
-    '''
-
-    img = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    return img
-
-def np2tensor(img):
-    return torch.from_numpy(np.ascontiguousarray(img)).permute(2, 0, 1).float().div(255.)
+def collect_shard_files(root_dir):
+    return sorted(str(path) for path in Path(root_dir).rglob('*.pt'))
 
 class SRTrainDataset(Dataset):
-    def __init__(self, hr_dir):
+    def __init__(self, train_dir, scale, patch_size=0):
+        self.scale = scale
+        self.patch_size = patch_size if patch_size > 0 else default_patch_size(scale)
+        if self.patch_size % scale != 0:
+            raise ValueError(f'patch_size={self.patch_size} 必须能被 scale={scale} 整除')
 
-        self.hr_files = sorted([os.path.join(hr_dir, f) for f in os.listdir(hr_dir) if f.endswith('.pt')])
+        train_files = collect_shard_files(train_dir)
+        if not train_files:
+            raise ValueError(f'未在 {train_dir} 找到新的训练分片，请先重新运行 image_processor_train.py')
+
         self.hr_data = []
+        self.lr_data = []
+        self.dataset_names = []
 
-        for i in range(len(self.hr_files)):
-            x = torch.load(self.hr_files[i])
-            self.hr_data.extend(x)
-        
-        self.hr_data = self.hr_data
+        for file_path in train_files:
+            packed = torch.load(file_path, weights_only=False)
+            lr_key = f'lr_x{scale}'
+            if not isinstance(packed, dict) or 'hr' not in packed or lr_key not in packed or 'names' not in packed or 'dataset_names' not in packed:
+                raise ValueError(f'{file_path} 不是新的训练分片格式')
+
+            hr_batch = packed['hr']
+            lr_batch = packed[lr_key]
+            names = packed['names']
+            dataset_names = packed['dataset_names']
+
+            if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names) or len(hr_batch) != len(dataset_names):
+                raise ValueError(f'{file_path} 中 names/dataset_names/HR/LR 数量不一致')
+
+            self.hr_data.extend(list(hr_batch))
+            self.lr_data.extend(list(lr_batch))
+            self.dataset_names.extend(list(dataset_names))
+
+        dataset_counts = Counter(self.dataset_names)
+        self.sample_weights = torch.tensor(
+            [1.0 / dataset_counts[name] for name in self.dataset_names],
+            dtype=torch.double
+        )
+    
+    def __len__(self):
+        return len(self.hr_data)
+
+    def _paired_random_crop(self, lr, hr):
+        lr_patch = self.patch_size // self.scale
+        lr_h, lr_w = lr.shape[-2:]
+
+        if lr_h < lr_patch or lr_w < lr_patch:
+            raise ValueError(f'LR patch 尺寸过小: {(lr_h, lr_w)} < {lr_patch}')
+
+        if lr_h == lr_patch and lr_w == lr_patch:
+            top = 0
+            left = 0
+        else:
+            top = random.randint(0, lr_h - lr_patch)
+            left = random.randint(0, lr_w - lr_patch)
+
+        hr_top = top * self.scale
+        hr_left = left * self.scale
+        hr_patch = self.patch_size
+
+        lr = lr[:, top:top + lr_patch, left:left + lr_patch]
+        hr = hr[:, hr_top:hr_top + hr_patch, hr_left:hr_left + hr_patch]
+        return lr, hr
+
+    def _paired_augment(self, lr, hr):
+        if random.random() < 0.5:
+            lr = torch.flip(lr, dims=[2])
+            hr = torch.flip(hr, dims=[2])
+
+        if random.random() < 0.5:
+            lr = torch.flip(lr, dims=[1])
+            hr = torch.flip(hr, dims=[1])
+
+        k = random.randint(0, 3)
+        if k:
+            lr = torch.rot90(lr, k, dims=[1, 2])
+            hr = torch.rot90(hr, k, dims=[1, 2])
+
+        return lr.contiguous(), hr.contiguous()
+    
+    def __getitem__(self, idx):
+        lr = self.lr_data[idx].clone()
+        hr = self.hr_data[idx].clone()
+        lr, hr = self._paired_random_crop(lr, hr)
+        lr, hr = self._paired_augment(lr, hr)
+        return lr, hr
+
+class SRValDataset(Dataset):
+    def __init__(self, val_dir, scale):
+        shard_files = sorted(
+            os.path.join(val_dir, file_name)
+            for file_name in os.listdir(val_dir)
+            if file_name.endswith('.pt')
+        )
+        if not shard_files:
+            raise ValueError(f'未在 {val_dir} 找到验证分片，请先重新运行 image_processor_val.py')
+
+        self.names = []
+        self.hr_data = []
+        self.lr_data = []
+
+        for file_path in shard_files:
+            packed = torch.load(file_path, weights_only=False)
+            lr_key = f'lr_x{scale}'
+            if not isinstance(packed, dict) or 'hr' not in packed or lr_key not in packed or 'names' not in packed:
+                raise ValueError(f'{file_path} 不是新的验证分片格式')
+
+            hr_batch = packed['hr']
+            lr_batch = packed[lr_key]
+            names = packed['names']
+
+            if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names):
+                raise ValueError(f'{file_path} 中 names/HR/LR 数量不一致')
+
+            self.names.extend(names)
+            self.hr_data.extend(list(hr_batch))
+            self.lr_data.extend(list(lr_batch))
+
+        if len(self.names) != len(set(self.names)):
+            raise ValueError(f'{val_dir} 存在重复图片名')
     
     def __len__(self):
         return len(self.hr_data)
     
     def __getitem__(self, idx):
-        return self.hr_data[idx]
+        return self.lr_data[idx], self.hr_data[idx]
 
-class SRValDataset(Dataset):
-    def __init__(self, val_dir, scale):
-
-        self.hr_files = sorted([os.path.join(val_dir, 'HR', f) for f in os.listdir(os.path.join(val_dir, 'HR')) if f.endswith('.pt')])
-        self.lr_files = sorted([os.path.join(val_dir, f'LR_bicubic_x{scale}', f) for f in os.listdir(os.path.join(val_dir, f'LR_bicubic_x{scale}')) if f.endswith('.pt')])
-    
-    def __len__(self):
-        return len(self.hr_files)
-    
-    def __getitem__(self, idx):
-        hr = torch.load(self.hr_files[idx])    
-        lr = torch.load(self.lr_files[idx])
-        return lr, hr
-
-def create_train_loader(datasets_dir, batch_size=64, num_workers=8):
-    hr_dir = os.path.join(datasets_dir, 'HR')
-    dataset = SRTrainDataset(hr_dir)
-    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, 
-                                               num_workers=num_workers)
+def create_train_loader(datasets_dir, scale=2, batch_size=64, num_workers=8, patch_size=0):
+    dataset = SRTrainDataset(datasets_dir, scale=scale, patch_size=patch_size)
+    sampler = WeightedRandomSampler(
+        weights=dataset.sample_weights,
+        num_samples=len(dataset),
+        replacement=True
+    )
+    train_loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=sampler,
+        num_workers=num_workers,
+        pin_memory=True,
+        persistent_workers=num_workers > 0
+    )
     return train_loader
 
 def create_val_loader(datasets_dir, scale=2):
@@ -184,26 +163,3 @@ def create_val_loader(datasets_dir, scale=2):
     dataset = SRValDataset(val_dir, scale)
     val_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
     return val_loader
-
-class SRKorniaAugmentor(torch.nn.Module):
-    def __init__(self, scale=2):
-        super().__init__()
-        self.scale = scale
-        self.augment = torch.nn.Sequential(
-            K.RandomCrop(size=(144, 144)),
-            K.RandomHorizontalFlip(p=0.5),
-            K.RandomVerticalFlip(p=0.5),
-            K.RandomRotation90(times=(0,3), p=0.5)
-        )
-        
-        self.lr_only_aug = torch.nn.Sequential(
-            K.RandomGaussianBlur(kernel_size=(5, 5), sigma=(0.1, 1.0), p=0.5),
-            K.RandomGaussianNoise(mean=0.0, std=1, p=0.5)
-        )
-
-    def forward(self, hr):
-        hr = self.augment(hr)
-        lr = F.interpolate(hr, scale_factor=1/self.scale, mode='bicubic', align_corners=False)
-        # lr = self.lr_only_aug(lr)
-
-        return lr, hr
