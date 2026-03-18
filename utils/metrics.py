@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.fft as fft
+import math
 from pytorch_msssim import ssim as pssim
 
 def calculate_psnr(img1, img2):
@@ -40,12 +41,12 @@ class MixedLoss(nn.Module):
     def __init__(self, eps=1e-8, gamma=0.5):
         super().__init__()
         self.eps = eps
-        self.gamma = gamma
+        self.gamma = float(gamma)
 
     def forward(self, pred, target):
         loss1 = self.Charbonnier_Loss(pred, target)
         loss2 = self.Frequency_Loss(pred, target)
-        return loss1 + self.gamma *  loss2
+        return loss1 + self.gamma * loss2
 
     def Charbonnier_Loss(self, pred, target):
         diff = pred - target
@@ -61,26 +62,3 @@ class MixedLoss(nn.Module):
         target_fft = fft.fft2(target_f, norm='ortho')
         loss = torch.abs(pred_fft - target_fft)
         return loss.mean()
-
-class CharbonnierLoss(nn.Module):
-    """Charbonnier Loss (aka L1-L2 loss)"""
-    def __init__(self, eps=1e-8, reduction='mean'):
-        super(CharbonnierLoss, self).__init__()
-        self.eps = eps
-        self.reduction = reduction
-
-    def forward(self, pred, target):
-        # Calculate the squared difference
-        diff = pred - target
-        squared_diff = diff * diff
-        
-        # Apply the Charbonnier formula
-        loss = torch.sqrt(squared_diff + self.eps)
-        
-        # Apply reduction
-        if self.reduction == 'mean':
-            return loss.mean()
-        elif self.reduction == 'sum':
-            return loss.sum()
-        else:
-            return loss

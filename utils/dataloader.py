@@ -197,8 +197,8 @@ class SRKorniaAugmentor(torch.nn.Module):
         )
         
         self.lr_only_aug = torch.nn.Sequential(
-            K.RandomGaussianBlur(kernel_size=(5, 5), sigma=(0.1, 1.0), p=1.0),
-            K.RandomGaussianNoise(mean=0.0, std=0.098, p=1.0)
+            K.RandomGaussianBlur(kernel_size=(5, 5), sigma=(0.1, 1.0), p=0.5),
+            K.RandomGaussianNoise(mean=0.0, std=1, p=0.5)
         )
 
     def forward(self, hr):

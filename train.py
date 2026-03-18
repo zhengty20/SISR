@@ -10,7 +10,7 @@ from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, SRKorniaAugmentor, WarmupCosineScheduler, CharbonnierLoss
+create_train_loader, create_val_loader, SRKorniaAugmentor, WarmupCosineScheduler, MixedLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -46,7 +46,7 @@ def main():
     augmentor = augmentor.to(device)
     
     # 损失函数  
-    loss_func = CharbonnierLoss(eps=1e-8, reduction='mean')
+    loss_func = MixedLoss(eps=1e-8, gamma=0)
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
@@ -55,13 +55,13 @@ def main():
     ema = ExponentialMovingAverage(model.parameters(), decay=0.999)
     
     # 学习率调度器：warmup + cosine annealing
-    warmup_epochs = max(1, int(math.ceil(args.epochs * 0.1)))
+    warmup_epochs = 20
     scheduler = WarmupCosineScheduler(
         optimizer=optimizer,
         total_epochs=args.epochs,
         warmup_epochs=warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=1e-4
+        warmup_start_lr=5e-5
     )
 
     # 记录训练开始信息
@@ -69,12 +69,10 @@ def main():
                               len(val_loader_set5) + len(val_loader_set14) + len(val_loader_b100) + len(val_loader_u100) + len(val_loader_m109))
 
     # 训练循环
-    # best_val_loss = 10
-    best_set5_snr = 0.0
+    best_val_loss = 10
 
     logger.info("Begin Training")
     for epoch in range(args.epochs):
-
         # 训练
         val_loss = 0.0
         train_loss = train_epoch(model, train_loader, augmentor, loss_func, optimizer, device, epoch)
@@ -93,11 +91,10 @@ def main():
             val_loss /= 5
 
         logger.log_epoch_val(epoch, args.epochs, val_loss)
-        val_metrics_set5 = validate_metrics(model, val_loader_set5, args.scale, device, 1)
         
-        if val_metrics_set5['psnr'] > best_set5_snr:
+        if val_loss < best_val_loss:
             
-            best_set5_snr = val_metrics_set5['psnr']
+            best_val_loss = val_loss
             ema_model = copy.deepcopy(model)
             
             torch.save({
