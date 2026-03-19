@@ -105,11 +105,13 @@ def bilinear_interpolate_hdl(x: torch.Tensor, scale: float) -> torch.Tensor:
     
     return out.to(torch.float32)
 
-def usm_interpolation(x: torch.Tensor, scale: float, bit8: bool = False) -> torch.Tensor:
+def bilinear_interpolation(x: torch.Tensor, scale: float, bit8: bool = False) -> torch.Tensor:
     if bit8:
-        x = bilinear_interpolate_hdl(x, scale).floor()
-    else:
-        x = F.interpolate(x, scale_factor=scale, mode='bilinear', align_corners=False).floor()
+        return bilinear_interpolate_hdl(x, scale).floor()
+    return F.interpolate(x, scale_factor=scale, mode='bilinear', align_corners=False).floor()
+
+def usm_interpolation(x: torch.Tensor, scale: float, bit8: bool = False) -> torch.Tensor:
+    x = bilinear_interpolation(x, scale, bit8=bit8)
     usm = gaussian_blur2d(x, 5, 2.0)
     x = (x + 9 / 16 * (x - usm)).floor().clamp(0, 255)
     return x

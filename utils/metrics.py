@@ -62,3 +62,25 @@ class MixedLoss(nn.Module):
         target_fft = fft.fft2(target_f, norm='ortho')
         loss = torch.abs(pred_fft - target_fft)
         return loss.mean()
+
+class PSNRLoss(nn.Module):
+
+    def __init__(self, loss_weight=1.0, reduction='mean', toY=False):
+        super(PSNRLoss, self).__init__()
+        assert reduction == 'mean'
+        self.loss_weight = loss_weight
+        self.scale = 10.0 / math.log(10.0)
+        self.toY = toY
+        self.register_buffer('coef', torch.tensor([65.481, 128.553, 24.966], dtype=torch.float32).reshape(1, 3, 1, 1))
+
+    def forward(self, pred, target):
+        assert len(pred.size()) == 4
+        if self.toY:
+            pred = (pred * self.coef.to(pred.device)).sum(dim=1).unsqueeze(dim=1) + 16.
+            target = (target * self.coef.to(target.device)).sum(dim=1).unsqueeze(dim=1) + 16.
+
+            pred = pred / 255.
+            target = target / 255.
+        assert len(pred.size()) == 4
+
+        return self.loss_weight * self.scale * torch.log(((pred - target) ** 2).mean(dim=(1, 2, 3)) + 1e-8).mean()

@@ -128,9 +128,12 @@ class SRValDataset(Dataset):
             if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names):
                 raise ValueError(f'{file_path} 中 names/HR/LR 数量不一致')
 
-            self.names.extend(names)
-            self.hr_data.extend(list(hr_batch))
-            self.lr_data.extend(list(lr_batch))
+            for name, hr, lr in zip(names, hr_batch, lr_batch):
+                if hr.shape[-2] < lr.shape[-2] * scale or hr.shape[-1] < lr.shape[-1] * scale:
+                    raise ValueError(f'{file_path} 中 {name} 的 HR/LR 尺寸不匹配')
+                self.names.append(name)
+                self.hr_data.append(hr)
+                self.lr_data.append(lr)
 
         if len(self.names) != len(set(self.names)):
             raise ValueError(f'{val_dir} 存在重复图片名')

@@ -9,7 +9,7 @@ from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
+create_train_loader, create_val_loader, WarmupCosineScheduler, PSNRLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -55,7 +55,7 @@ def main():
     logger.info(f"模型总参数量: {total_params:,}")
 
     # 损失函数  
-    loss_func = MixedLoss(eps=1e-8, gamma=0)
+    loss_func = PSNRLoss(toY=True)
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)

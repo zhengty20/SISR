@@ -1,7 +1,7 @@
 import torch
 from tqdm import tqdm
 from utils import metrics
-from models import usm_interpolation
+from models import bilinear_interpolation
 import torch.nn.functional as F
 
 def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=None):
@@ -15,9 +15,10 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
         hr_img = hr_img.to(device).float()
 
         optimizer.zero_grad(set_to_none=True)
-        hr_img = (hr_img - usm_interpolation(lr_img, model.scale, bit8=True)).div(255.)
+        base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+        # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
         lr_img = lr_img.div(255.)
-        sr_img = model(lr_img)
+        sr_img = (model(lr_img) * 255.).round() + base_img
 
         loss = loss_func(sr_img, hr_img)
         loss.backward()
@@ -41,10 +42,10 @@ def validate_epoch(model, val_loader, loss_func, device):
         for lr_img, hr_img in vpbar:
                 
             lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            hr_img = (hr_img - usm_interpolation(lr_img, model.scale, bit8=True)).div(255.)
-            
+            base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+            # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
             lr_img = lr_img.div(255.)
-            sr_img = model(lr_img)           
+            sr_img = (model(lr_img) * 255.).round() + base_img       
             
             loss = loss_func(sr_img, hr_img)
             val_loss += loss.item()
@@ -65,7 +66,9 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=1.0):
             
             lr_img_norm = lr_img.div(255.)
             sr_img_norm = model(lr_img_norm)
-            sr_img = ((sr_img_norm * 255.).round() + usm_interpolation(lr_img, model.scale, bit8=True)).clamp(0, 255)
+            base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+            # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
+            sr_img = ((sr_img_norm * 255.).round() + base_img).clamp(0, 255)
             
             crop_border = scale
             sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
