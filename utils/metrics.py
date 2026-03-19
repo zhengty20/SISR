@@ -65,7 +65,7 @@ class MixedLoss(nn.Module):
 
 class PSNRLoss(nn.Module):
 
-    def __init__(self, loss_weight=1.0, reduction='mean', toY=False):
+    def __init__(self, loss_weight=1.0, reduction='mean', toY=True):
         super(PSNRLoss, self).__init__()
         assert reduction == 'mean'
         self.loss_weight = loss_weight
@@ -76,8 +76,9 @@ class PSNRLoss(nn.Module):
     def forward(self, pred, target):
         assert len(pred.size()) == 4
         if self.toY:
-            pred = (pred * self.coef.to(pred.device)).sum(dim=1).unsqueeze(dim=1) + 16.
-            target = (target * self.coef.to(target.device)).sum(dim=1).unsqueeze(dim=1) + 16.
+            coef = self.coef.to(pred.device)
+            pred = (pred * coef).sum(dim=1).unsqueeze(dim=1) + 16.
+            target = (target * coef).sum(dim=1).unsqueeze(dim=1) + 16.
 
             pred = pred / 255.
             target = target / 255.

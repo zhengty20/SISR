@@ -18,7 +18,7 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
         base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
         # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
         lr_img = lr_img.div(255.)
-        sr_img = (model(lr_img) * 255.).round() + base_img
+        sr_img = model(lr_img) * 255. + base_img
 
         loss = loss_func(sr_img, hr_img)
         loss.backward()
@@ -34,7 +34,6 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
 def validate_epoch(model, val_loader, loss_func, device):
     """验证一个epoch，随机采样指定数量的图片"""
     model.eval()
-
     val_loss = 0.0
 
     with torch.no_grad():
@@ -45,7 +44,7 @@ def validate_epoch(model, val_loader, loss_func, device):
             base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
             # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
             lr_img = lr_img.div(255.)
-            sr_img = (model(lr_img) * 255.).round() + base_img       
+            sr_img = model(lr_img) * 255. + base_img       
             
             loss = loss_func(sr_img, hr_img)
             val_loss += loss.item()
