@@ -2,15 +2,28 @@ import os
 import sys
 import torch
 import torch.optim as optim
+import copy
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
-import copy
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from models import ISCSR, QISCSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, create_logger, create_train_loader, create_val_loader, MixedLoss
+from models import DPSR
+from models.QDPSR import QDPSR
+from utils import (
+    train_parser,
+    train_epoch,
+    validate_epoch,
+    validate_metrics,
+    basic_metrics,
+    create_logger,
+    create_train_loader,
+    create_val_loader,
+    WarmupCosineScheduler,
+    MixedLoss,
+    transfer_weights
+)
 
 def main():
 
@@ -36,35 +49,67 @@ def main():
     val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
     val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
     val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
+    val_loaders = {
+        'Set5': val_loader_set5,
+        'Set14': val_loader_set14,
+        'B100': val_loader_b100,
+        'U100': val_loader_u100,
+        'M109': val_loader_m109,
+    }
     
     time_stamp = datetime.now().strftime("%m%d_%H%M")
     # 创建保存目录
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
-    model = QISCSR(scale = args.scale, in_dim = args.in_channels, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
-    # model = ISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    model = QDPSR(
+        scale=args.scale,
+        in_dim=args.in_channels,
+        fea_dim=args.channel_nums,
+        num_blocks=args.num_blocks,
+        bias=False,
+        weight_bitwidth=args.w_bits,
+        activation_bitwidth=args.a_bits
+    ).to(device)
+    if args.init_from_fp:
+        if not args.fp_ckpt:
+            raise ValueError("init_from_fp=True 时必须提供 --fp_ckpt")
+
+        logger.info(f"从全精度模型初始化量化模型: {args.fp_ckpt}")
+        fp_model = DPSR(
+            scale=args.scale,
+            in_dim=args.in_channels,
+            fea_dim=args.channel_nums,
+            num_blocks=args.num_blocks,
+            bias=False,
+        ).to(device)
+
+        fp_ckpt = torch.load(args.fp_ckpt, map_location=device, weights_only=False)
+        fp_state_dict = fp_ckpt['model_state_dict'] if isinstance(fp_ckpt, dict) and 'model_state_dict' in fp_ckpt else fp_ckpt
+        fp_model.load_state_dict(fp_state_dict, strict=True)
+        transfer_weights(fp_model, model)
+        logger.info("全精度权重迁移完成")
 
     # 统计模型参数量
     total_params = model.param_num()
     logger.info(f"模型总参数量: {total_params:,}")
 
-    # 损失函数  
-    loss_func = MixedLoss()
+    # 损失函数
+    loss_func = MixedLoss(eps=1e-8, gamma=0.2)
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
     
-    # 排除量化器的scale参数，只对卷积权重和偏置使用EMA
-    ema_params = []
-    for name, param in model.named_parameters():
-        if 'quantizer.s' not in name:  # 排除量化器的scale参数
-            ema_params.append(param)
+    ema = ExponentialMovingAverage(model.parameters(), decay=args.ema_decay)
     
-    ema = ExponentialMovingAverage(ema_params, decay=0.995)
-    
-    # 学习率调度器
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.minlr)
+    # 学习率调度器：warmup + cosine annealing
+    scheduler = WarmupCosineScheduler(
+        optimizer=optimizer,
+        total_epochs=args.epochs,
+        warmup_epochs=args.warmup_epochs,
+        eta_min=args.minlr,
+        warmup_start_lr=5e-5
+    )
    
     # 记录训练开始信息
     logger.log_training_start(args, total_params, len(train_loader), 
@@ -72,96 +117,77 @@ def main():
 
 
     # 训练循环
-    best_val_loss = 10
+    best_val_loss = 10.0
 
     logger.info("Begin Training")
     for epoch in range(args.epochs):
-
         # 训练
         val_loss = 0.0
         train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema)
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
-        
+
+        best_candidate = None
         with ema.average_parameters():
-            
-            val_loss = validate_epoch(model, val_loader_set5, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_set14, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_b100, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_u100, loss_func, device)
-            val_loss += validate_epoch(model, val_loader_m109, loss_func, device)
-            val_loss /= 5
+            weighted_val_loss = 0.0
+            total_val_samples = 0
+            for loader in val_loaders.values():
+                loader_loss = validate_epoch(model, loader, loss_func, device)
+                sample_count = len(loader.dataset)
+                weighted_val_loss += loader_loss * sample_count
+                total_val_samples += sample_count
+            val_loss = weighted_val_loss / total_val_samples
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_candidate = copy.deepcopy(model)
 
         logger.log_epoch_val(epoch, args.epochs, val_loss)
         
-        if val_loss < best_val_loss:
-            
-            best_val_loss = val_loss
-            ema_model = copy.deepcopy(model)
-            
-            # 只复制EMA管理的参数（排除量化器的scale参数）
-            ema_params_list = []
-            for name, param in ema_model.named_parameters():
-                if 'quantizer.s' not in name:
-                    ema_params_list.append(param)
-            
-            ema.copy_to(ema_params_list)
-            
+        if best_candidate is not None:
             torch.save({
                 'epoch': epoch + 1,
                 'iteration': (epoch + 1) * len(train_loader),
-                'model_state_dict': ema_model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict()
+                'model_state_dict': best_candidate.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict()
             }, model_path)
             
             logger.log_best_model(val_loss)
 
-            val_metrics_set5 = validate_metrics(ema_model, val_loader_set5, args.scale, device, 1)
-            logger.log_validation_results("Set5", val_metrics_set5)
-            
-            val_metrics_set14 = validate_metrics(ema_model, val_loader_set14, args.scale, device, 1)
-            logger.log_validation_results("Set14", val_metrics_set14)
-            
-            val_metrics_b100 = validate_metrics(ema_model, val_loader_b100, args.scale, device, 1)
-            logger.log_validation_results("B100", val_metrics_b100)
-            
-            val_metrics_u100 = validate_metrics(ema_model, val_loader_u100, args.scale, device, 1)
-            logger.log_validation_results("U100", val_metrics_u100)
-            
-            val_metrics_m109 = validate_metrics(ema_model, val_loader_m109, args.scale, device, 1)
-            logger.log_validation_results("M109", val_metrics_m109)
+            for dataset_name, loader in val_loaders.items():
+                val_metrics = validate_metrics(best_candidate, loader, args.scale, device, 1.0)
+                logger.log_validation_results(dataset_name, val_metrics)
 
-        # 更新学习率（在epoch结束时）
         scheduler.step()
     
     logger.log_training_finished()
 
     logger.log_testing_start("Best Model")
-    net = QISCSR(scale = args.scale, in_dim = args.in_channels, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    net = QDPSR(
+        scale=args.scale,
+        in_dim=args.in_channels,
+        fea_dim=args.channel_nums,
+        num_blocks=args.num_blocks,
+        bias=False,
+        weight_bitwidth=args.w_bits,
+        activation_bitwidth=args.a_bits,
+        pact_alpha_init=args.pact_alpha_init,
+    ).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
-    
-    with torch.no_grad():
-        dummy_input = torch.randn(1, args.in_channels, 32, 32).to(device)
-        _ = net(dummy_input)
-    
     net.load_state_dict(state_dict['model_state_dict'])
     net.eval()
 
-    val_metrics = validate_metrics(net, val_loader_set5, args.scale, device, 1)
-    logger.log_validation_results("Set5", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_set14, args.scale, device, 1)
-    logger.log_validation_results("Set14", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_b100, args.scale, device, 1)
-    logger.log_validation_results("B100", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_u100, args.scale, device, 1)
-    logger.log_validation_results("U100", val_metrics)
-    
-    val_metrics = validate_metrics(net, val_loader_m109, args.scale, device, 1)
-    logger.log_validation_results("M109", val_metrics)
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = validate_metrics(net, loader, args.scale, device, 1.0)
+        logger.log_validation_results(dataset_name, val_metrics)
+
+    logger.log_testing_start("Bicubic Interpolation")
+
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = basic_metrics(loader, args.scale, device)
+        logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger
     logger.close()

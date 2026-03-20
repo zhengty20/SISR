@@ -7,7 +7,7 @@ import copy
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
-from models import DPSR, FSRCNN
+from models import DPSR
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
 create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
@@ -50,7 +50,6 @@ def main():
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
     model = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    # model = FSRCNN(scale=args.scale, in_dim=args.in_channels, d_dim=56, s_dim=12, num_blocks=4).to(device)
     
     # 统计模型参数量
     total_params = model.param_num()
@@ -61,13 +60,6 @@ def main():
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
-    '''
-    optimizer = optim.Adam([
-        {'params': model.first_part.parameters()},
-        {'params': model.mid_part.parameters()},
-        {'params': model.last_part.parameters(), 'lr': args.lr * 0.1}
-    ], lr=args.lr)
-    '''
     
     # EMA
     ema = ExponentialMovingAverage(model.parameters(), decay=args.ema_decay)
@@ -135,7 +127,6 @@ def main():
 
     logger.log_testing_start("Best Model")
     net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    # net = FSRCNN(scale=args.scale, in_dim=args.in_channels, d_dim=56, s_dim=12, num_blocks=4).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict['model_state_dict'])

@@ -1,13 +1,11 @@
 from .ARMSR import ARMSR
 from .DPSR import DPSR
-from .QISCSR import QISCSR
-from .FSRCNN import FSRCNN
+from .QDPSR import QDPSR
 from .Bilinear import bilinear_interpolation
 
 __all__ = [
     'ARMSR',
     'DPSR',
-    'QISCSR',
-    'FSRCNN',
+    'QDPSR',
     'bilinear_interpolation'
 ]

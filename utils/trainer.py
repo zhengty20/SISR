@@ -113,50 +113,39 @@ def basic_metrics(val_loader, scale, device):
     }
 
 def transfer_weights(model, qmodel):
-  
     # 检查模型结构是否兼容
     if len(model.body) != len(qmodel.body):
-        raise ValueError(f"模型body层数不匹配: ISCSR({len(model.body)}) vs QISCSR({len(qmodel.body)})")
-    
-    # 1. 迁移head层权重
-    print("迁移head层权重...")
-    qmodel.head.conv.weight.data.copy_(model.head.weight.data)
-    if model.head.bias is not None and qmodel.head.conv.bias is not None:
-        qmodel.head.conv.bias.data.copy_(model.head.bias.data)
-    
-    # 2. 迁移body层权重
-    print("迁移body层权重...")
-    for i in range(len(model.body)):
-        print(f"  迁移第{i+1}个Block...")
-        
-        # 迁移filter1
-        qmodel.body[i].filter1.conv.weight.data.copy_(model.body[i].filter1.weight.data)
-        if model.body[i].filter1.bias is not None and qmodel.body[i].filter1.conv.bias is not None:
-            qmodel.body[i].filter1.conv.bias.data.copy_(model.body[i].filter1.bias.data)
-        
-        # 迁移filter2
-        qmodel.body[i].filter2.conv.weight.data.copy_(model.body[i].filter2.weight.data)
-        if model.body[i].filter2.bias is not None and qmodel.body[i].filter2.conv.bias is not None:
-            qmodel.body[i].filter2.conv.bias.data.copy_(model.body[i].filter2.bias.data)
-        
-        # 迁移projection1
-        qmodel.body[i].projection1.conv.weight.data.copy_(model.body[i].projection1.weight.data)
-        if model.body[i].projection1.bias is not None and qmodel.body[i].projection1.conv.bias is not None:
-            qmodel.body[i].projection1.conv.bias.data.copy_(model.body[i].projection1.bias.data)
-        
-        # 迁移projection2
-        qmodel.body[i].projection2.conv.weight.data.copy_(model.body[i].projection2.weight.data)
-        if model.body[i].projection2.bias is not None and qmodel.body[i].projection2.conv.bias is not None:
-            qmodel.body[i].projection2.conv.bias.data.copy_(model.body[i].projection2.bias.data)
-    
-    # 3. 迁移tail层权重
-    print("迁移tail层权重...")
-    qmodel.tail.conv.weight.data.copy_(model.tail.weight.data)
-    if model.tail.bias is not None and qmodel.tail.conv.bias is not None:
-        qmodel.tail.conv.bias.data.copy_(model.tail.bias.data)
-    
-    # 4. 迁移alpha参数
-    print("迁移alpha参数...")
-    qmodel.alpha.data.copy_(model.alpha.data)
-    
+        raise ValueError(f"模型body层数不匹配: DPSR({len(model.body)}) vs QDPSR({len(qmodel.body)})")
+
+    def _copy_conv(src_conv, dst_qconv):
+        dst_qconv.conv.weight.data.copy_(src_conv.weight.data)
+        if src_conv.bias is not None and dst_qconv.conv.bias is not None:
+            dst_qconv.conv.bias.data.copy_(src_conv.bias.data)
+
+    with torch.no_grad():
+        # 1. 迁移head层权重
+        print("迁移head层权重...")
+        _copy_conv(model.head, qmodel.head)
+
+        # 2. 迁移body层权重
+        print("迁移body层权重...")
+        for i in range(len(model.body)):
+            print(f"  迁移第{i + 1}个Block...")
+            _copy_conv(model.body[i].projection1, qmodel.body[i].projection1)
+            _copy_conv(model.body[i].filter1, qmodel.body[i].filter1)
+            _copy_conv(model.body[i].projection2, qmodel.body[i].projection2)
+            _copy_conv(model.body[i].filter2, qmodel.body[i].filter2)
+
+            # 迁移PReLU参数
+            qmodel.body[i].act1.weight.data.copy_(model.body[i].act1.weight.data)
+            qmodel.body[i].act2.weight.data.copy_(model.body[i].act2.weight.data)
+
+        # 3. 迁移tail层权重
+        print("迁移tail层权重...")
+        _copy_conv(model.tail, qmodel.tail)
+
+        # 4. 迁移alpha参数
+        print("迁移alpha参数...")
+        qmodel.alpha.data.copy_(model.alpha.data)
+
     print("权重迁移完成!")

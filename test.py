@@ -1,15 +1,14 @@
 import torch
 
 from utils import create_val_loader, test_parser, validate_metrics
-from models import DPSR, FSRCNN
+from models import DPSR
 
 if __name__ == '__main__':
 
     args = test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
-    # net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    net = FSRCNN(scale=args.scale, in_dim=args.in_channels, d_dim=56, s_dim=12, num_blocks=4).to(device)
+    net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
     state_dict = torch.load("./checkpoints/fsrcnn_x2.pth", map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict)

@@ -1,0 +1,1218 @@
+使用设备: cuda
+模型总参数量: 17,440
+==================================================
+Training Started
+==================================================
+实验名称: DPSR_x2_0320_1349
+放大倍数: 2
+批次大小: 64
+学习率: 0.002
+最小学习率: 2e-05
+训练轮数: 150
+设备: cuda
+模型参数数量: 17,440
+训练批次: 1110
+验证批次: 328
+==================================================
+Begin Training
+Epoch 1/150: Training loss=0.027135, lr=2.00e-04
+Epoch 1/150: Validation loss=0.031222
+Model saved! Best loss: 0.031222
+Set5: PSNR(Y)=34.582, SSIM(Y)=0.9392
+Set14: PSNR(Y)=31.071, SSIM(Y)=0.8882
+B100: PSNR(Y)=30.206, SSIM(Y)=0.8671
+U100: PSNR(Y)=27.570, SSIM(Y)=0.8602
+M109: PSNR(Y)=32.028, SSIM(Y)=0.9446
+Epoch 2/150: Training loss=0.022249, lr=3.20e-04
+Epoch 2/150: Validation loss=0.029816
+Model saved! Best loss: 0.029816
+Set5: PSNR(Y)=35.089, SSIM(Y)=0.9438
+Set14: PSNR(Y)=31.425, SSIM(Y)=0.8962
+B100: PSNR(Y)=30.512, SSIM(Y)=0.8771
+U100: PSNR(Y)=27.889, SSIM(Y)=0.8683
+M109: PSNR(Y)=32.712, SSIM(Y)=0.9500
+Epoch 3/150: Training loss=0.021754, lr=4.40e-04
+Epoch 3/150: Validation loss=0.029470
+Model saved! Best loss: 0.029470
+Set5: PSNR(Y)=35.201, SSIM(Y)=0.9445
+Set14: PSNR(Y)=31.492, SSIM(Y)=0.8972
+B100: PSNR(Y)=30.558, SSIM(Y)=0.8782
+U100: PSNR(Y)=27.943, SSIM(Y)=0.8692
+M109: PSNR(Y)=32.874, SSIM(Y)=0.9511
+Epoch 4/150: Training loss=0.021449, lr=5.60e-04
+Epoch 4/150: Validation loss=0.029230
+Model saved! Best loss: 0.029230
+Set5: PSNR(Y)=35.288, SSIM(Y)=0.9451
+Set14: PSNR(Y)=31.544, SSIM(Y)=0.8978
+B100: PSNR(Y)=30.592, SSIM(Y)=0.8786
+U100: PSNR(Y)=27.986, SSIM(Y)=0.8698
+M109: PSNR(Y)=32.999, SSIM(Y)=0.9519
+Epoch 5/150: Training loss=0.021060, lr=6.80e-04
+Epoch 5/150: Validation loss=0.028698
+Model saved! Best loss: 0.028698
+Set5: PSNR(Y)=35.522, SSIM(Y)=0.9467
+Set14: PSNR(Y)=31.690, SSIM(Y)=0.8993
+B100: PSNR(Y)=30.688, SSIM(Y)=0.8798
+U100: PSNR(Y)=28.123, SSIM(Y)=0.8725
+M109: PSNR(Y)=33.371, SSIM(Y)=0.9545
+Epoch 6/150: Training loss=0.020541, lr=8.00e-04
+Epoch 6/150: Validation loss=0.027799
+Model saved! Best loss: 0.027799
+Set5: PSNR(Y)=35.869, SSIM(Y)=0.9492
+Set14: PSNR(Y)=31.917, SSIM(Y)=0.9014
+B100: PSNR(Y)=30.852, SSIM(Y)=0.8820
+U100: PSNR(Y)=28.390, SSIM(Y)=0.8777
+M109: PSNR(Y)=34.033, SSIM(Y)=0.9585
+Epoch 7/150: Training loss=0.020154, lr=9.20e-04
+Epoch 7/150: Validation loss=0.026933
+Model saved! Best loss: 0.026933
+Set5: PSNR(Y)=36.205, SSIM(Y)=0.9518
+Set14: PSNR(Y)=32.126, SSIM(Y)=0.9035
+B100: PSNR(Y)=31.008, SSIM(Y)=0.8840
+U100: PSNR(Y)=28.675, SSIM(Y)=0.8832
+M109: PSNR(Y)=34.649, SSIM(Y)=0.9620
+Epoch 8/150: Training loss=0.019898, lr=1.04e-03
+Epoch 8/150: Validation loss=0.026337
+Model saved! Best loss: 0.026337
+Set5: PSNR(Y)=36.425, SSIM(Y)=0.9532
+Set14: PSNR(Y)=32.261, SSIM(Y)=0.9048
+B100: PSNR(Y)=31.112, SSIM(Y)=0.8854
+U100: PSNR(Y)=28.890, SSIM(Y)=0.8870
+M109: PSNR(Y)=35.052, SSIM(Y)=0.9642
+Epoch 9/150: Training loss=0.019714, lr=1.16e-03
+Epoch 9/150: Validation loss=0.025919
+Model saved! Best loss: 0.025919
+Set5: PSNR(Y)=36.576, SSIM(Y)=0.9541
+Set14: PSNR(Y)=32.354, SSIM(Y)=0.9058
+B100: PSNR(Y)=31.184, SSIM(Y)=0.8864
+U100: PSNR(Y)=29.051, SSIM(Y)=0.8898
+M109: PSNR(Y)=35.312, SSIM(Y)=0.9655
+Epoch 10/150: Training loss=0.019581, lr=1.28e-03
+Epoch 10/150: Validation loss=0.025603
+Model saved! Best loss: 0.025603
+Set5: PSNR(Y)=36.687, SSIM(Y)=0.9547
+Set14: PSNR(Y)=32.424, SSIM(Y)=0.9065
+B100: PSNR(Y)=31.239, SSIM(Y)=0.8871
+U100: PSNR(Y)=29.179, SSIM(Y)=0.8918
+M109: PSNR(Y)=35.500, SSIM(Y)=0.9664
+Epoch 11/150: Training loss=0.019486, lr=1.40e-03
+Epoch 11/150: Validation loss=0.025353
+Model saved! Best loss: 0.025353
+Set5: PSNR(Y)=36.770, SSIM(Y)=0.9552
+Set14: PSNR(Y)=32.483, SSIM(Y)=0.9070
+B100: PSNR(Y)=31.284, SSIM(Y)=0.8878
+U100: PSNR(Y)=29.287, SSIM(Y)=0.8935
+M109: PSNR(Y)=35.656, SSIM(Y)=0.9671
+Epoch 12/150: Training loss=0.019397, lr=1.52e-03
+Epoch 12/150: Validation loss=0.025135
+Model saved! Best loss: 0.025135
+Set5: PSNR(Y)=36.836, SSIM(Y)=0.9555
+Set14: PSNR(Y)=32.535, SSIM(Y)=0.9075
+B100: PSNR(Y)=31.323, SSIM(Y)=0.8883
+U100: PSNR(Y)=29.382, SSIM(Y)=0.8950
+M109: PSNR(Y)=35.797, SSIM(Y)=0.9678
+Epoch 13/150: Training loss=0.019327, lr=1.64e-03
+Epoch 13/150: Validation loss=0.024942
+Model saved! Best loss: 0.024942
+Set5: PSNR(Y)=36.893, SSIM(Y)=0.9558
+Set14: PSNR(Y)=32.580, SSIM(Y)=0.9080
+B100: PSNR(Y)=31.358, SSIM(Y)=0.8889
+U100: PSNR(Y)=29.472, SSIM(Y)=0.8965
+M109: PSNR(Y)=35.934, SSIM(Y)=0.9684
+Epoch 14/150: Training loss=0.019258, lr=1.76e-03
+Epoch 14/150: Validation loss=0.024760
+Model saved! Best loss: 0.024760
+Set5: PSNR(Y)=36.948, SSIM(Y)=0.9561
+Set14: PSNR(Y)=32.617, SSIM(Y)=0.9085
+B100: PSNR(Y)=31.389, SSIM(Y)=0.8896
+U100: PSNR(Y)=29.559, SSIM(Y)=0.8980
+M109: PSNR(Y)=36.068, SSIM(Y)=0.9689
+Epoch 15/150: Training loss=0.019189, lr=1.88e-03
+Epoch 15/150: Validation loss=0.024602
+Model saved! Best loss: 0.024602
+Set5: PSNR(Y)=36.994, SSIM(Y)=0.9563
+Set14: PSNR(Y)=32.649, SSIM(Y)=0.9090
+B100: PSNR(Y)=31.416, SSIM(Y)=0.8901
+U100: PSNR(Y)=29.639, SSIM(Y)=0.8993
+M109: PSNR(Y)=36.181, SSIM(Y)=0.9694
+Epoch 16/150: Training loss=0.019142, lr=2.00e-03
+Epoch 16/150: Validation loss=0.024466
+Model saved! Best loss: 0.024466
+Set5: PSNR(Y)=37.031, SSIM(Y)=0.9565
+Set14: PSNR(Y)=32.676, SSIM(Y)=0.9093
+B100: PSNR(Y)=31.437, SSIM(Y)=0.8905
+U100: PSNR(Y)=29.704, SSIM(Y)=0.9003
+M109: PSNR(Y)=36.271, SSIM(Y)=0.9698
+Epoch 17/150: Training loss=0.019095, lr=2.00e-03
+Epoch 17/150: Validation loss=0.024343
+Model saved! Best loss: 0.024343
+Set5: PSNR(Y)=37.062, SSIM(Y)=0.9566
+Set14: PSNR(Y)=32.699, SSIM(Y)=0.9095
+B100: PSNR(Y)=31.456, SSIM(Y)=0.8907
+U100: PSNR(Y)=29.759, SSIM(Y)=0.9011
+M109: PSNR(Y)=36.346, SSIM(Y)=0.9701
+Epoch 18/150: Training loss=0.019038, lr=2.00e-03
+Epoch 18/150: Validation loss=0.024233
+Model saved! Best loss: 0.024233
+Set5: PSNR(Y)=37.087, SSIM(Y)=0.9567
+Set14: PSNR(Y)=32.718, SSIM(Y)=0.9096
+B100: PSNR(Y)=31.472, SSIM(Y)=0.8908
+U100: PSNR(Y)=29.802, SSIM(Y)=0.9016
+M109: PSNR(Y)=36.412, SSIM(Y)=0.9703
+Epoch 19/150: Training loss=0.019011, lr=2.00e-03
+Epoch 19/150: Validation loss=0.024134
+Model saved! Best loss: 0.024134
+Set5: PSNR(Y)=37.106, SSIM(Y)=0.9568
+Set14: PSNR(Y)=32.734, SSIM(Y)=0.9097
+B100: PSNR(Y)=31.487, SSIM(Y)=0.8908
+U100: PSNR(Y)=29.840, SSIM(Y)=0.9020
+M109: PSNR(Y)=36.472, SSIM(Y)=0.9705
+Epoch 20/150: Training loss=0.018966, lr=2.00e-03
+Epoch 20/150: Validation loss=0.024045
+Model saved! Best loss: 0.024045
+Set5: PSNR(Y)=37.126, SSIM(Y)=0.9569
+Set14: PSNR(Y)=32.750, SSIM(Y)=0.9098
+B100: PSNR(Y)=31.501, SSIM(Y)=0.8910
+U100: PSNR(Y)=29.874, SSIM(Y)=0.9025
+M109: PSNR(Y)=36.534, SSIM(Y)=0.9707
+Epoch 21/150: Training loss=0.018923, lr=1.99e-03
+Epoch 21/150: Validation loss=0.023961
+Model saved! Best loss: 0.023961
+Set5: PSNR(Y)=37.143, SSIM(Y)=0.9569
+Set14: PSNR(Y)=32.765, SSIM(Y)=0.9099
+B100: PSNR(Y)=31.515, SSIM(Y)=0.8911
+U100: PSNR(Y)=29.907, SSIM(Y)=0.9029
+M109: PSNR(Y)=36.591, SSIM(Y)=0.9709
+Epoch 22/150: Training loss=0.018891, lr=1.99e-03
+Epoch 22/150: Validation loss=0.023887
+Model saved! Best loss: 0.023887
+Set5: PSNR(Y)=37.160, SSIM(Y)=0.9570
+Set14: PSNR(Y)=32.781, SSIM(Y)=0.9100
+B100: PSNR(Y)=31.528, SSIM(Y)=0.8912
+U100: PSNR(Y)=29.936, SSIM(Y)=0.9033
+M109: PSNR(Y)=36.640, SSIM(Y)=0.9710
+Epoch 23/150: Training loss=0.018846, lr=1.99e-03
+Epoch 23/150: Validation loss=0.023821
+Model saved! Best loss: 0.023821
+Set5: PSNR(Y)=37.174, SSIM(Y)=0.9571
+Set14: PSNR(Y)=32.791, SSIM(Y)=0.9100
+B100: PSNR(Y)=31.541, SSIM(Y)=0.8913
+U100: PSNR(Y)=29.964, SSIM(Y)=0.9036
+M109: PSNR(Y)=36.682, SSIM(Y)=0.9711
+Epoch 24/150: Training loss=0.018827, lr=1.98e-03
+Epoch 24/150: Validation loss=0.023764
+Model saved! Best loss: 0.023764
+Set5: PSNR(Y)=37.184, SSIM(Y)=0.9571
+Set14: PSNR(Y)=32.802, SSIM(Y)=0.9101
+B100: PSNR(Y)=31.552, SSIM(Y)=0.8914
+U100: PSNR(Y)=29.990, SSIM(Y)=0.9040
+M109: PSNR(Y)=36.715, SSIM(Y)=0.9713
+Epoch 25/150: Training loss=0.018810, lr=1.98e-03
+Epoch 25/150: Validation loss=0.023717
+Model saved! Best loss: 0.023717
+Set5: PSNR(Y)=37.192, SSIM(Y)=0.9571
+Set14: PSNR(Y)=32.808, SSIM(Y)=0.9102
+B100: PSNR(Y)=31.562, SSIM(Y)=0.8915
+U100: PSNR(Y)=30.011, SSIM(Y)=0.9042
+M109: PSNR(Y)=36.746, SSIM(Y)=0.9713
+Epoch 26/150: Training loss=0.018784, lr=1.97e-03
+Epoch 26/150: Validation loss=0.023675
+Model saved! Best loss: 0.023675
+Set5: PSNR(Y)=37.201, SSIM(Y)=0.9572
+Set14: PSNR(Y)=32.814, SSIM(Y)=0.9102
+B100: PSNR(Y)=31.570, SSIM(Y)=0.8916
+U100: PSNR(Y)=30.030, SSIM(Y)=0.9045
+M109: PSNR(Y)=36.770, SSIM(Y)=0.9714
+Epoch 27/150: Training loss=0.018778, lr=1.97e-03
+Epoch 27/150: Validation loss=0.023636
+Model saved! Best loss: 0.023636
+Set5: PSNR(Y)=37.209, SSIM(Y)=0.9572
+Set14: PSNR(Y)=32.820, SSIM(Y)=0.9103
+B100: PSNR(Y)=31.578, SSIM(Y)=0.8917
+U100: PSNR(Y)=30.049, SSIM(Y)=0.9047
+M109: PSNR(Y)=36.795, SSIM(Y)=0.9715
+Epoch 28/150: Training loss=0.018755, lr=1.96e-03
+Epoch 28/150: Validation loss=0.023604
+Model saved! Best loss: 0.023604
+Set5: PSNR(Y)=37.223, SSIM(Y)=0.9573
+Set14: PSNR(Y)=32.827, SSIM(Y)=0.9103
+B100: PSNR(Y)=31.585, SSIM(Y)=0.8918
+U100: PSNR(Y)=30.065, SSIM(Y)=0.9049
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9716
+Epoch 29/150: Training loss=0.018722, lr=1.96e-03
+Epoch 29/150: Validation loss=0.023575
+Model saved! Best loss: 0.023575
+Set5: PSNR(Y)=37.236, SSIM(Y)=0.9573
+Set14: PSNR(Y)=32.834, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.591, SSIM(Y)=0.8919
+U100: PSNR(Y)=30.079, SSIM(Y)=0.9051
+M109: PSNR(Y)=36.827, SSIM(Y)=0.9716
+Epoch 30/150: Training loss=0.018712, lr=1.95e-03
+Epoch 30/150: Validation loss=0.023546
+Model saved! Best loss: 0.023546
+Set5: PSNR(Y)=37.245, SSIM(Y)=0.9573
+Set14: PSNR(Y)=32.838, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.597, SSIM(Y)=0.8919
+U100: PSNR(Y)=30.094, SSIM(Y)=0.9054
+M109: PSNR(Y)=36.841, SSIM(Y)=0.9717
+Epoch 31/150: Training loss=0.018696, lr=1.94e-03
+Epoch 31/150: Validation loss=0.023520
+Model saved! Best loss: 0.023520
+Set5: PSNR(Y)=37.252, SSIM(Y)=0.9574
+Set14: PSNR(Y)=32.839, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.602, SSIM(Y)=0.8920
+U100: PSNR(Y)=30.108, SSIM(Y)=0.9055
+M109: PSNR(Y)=36.855, SSIM(Y)=0.9717
+Epoch 32/150: Training loss=0.018696, lr=1.93e-03
+Epoch 32/150: Validation loss=0.023498
+Model saved! Best loss: 0.023498
+Set5: PSNR(Y)=37.257, SSIM(Y)=0.9574
+Set14: PSNR(Y)=32.844, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.607, SSIM(Y)=0.8921
+U100: PSNR(Y)=30.121, SSIM(Y)=0.9057
+M109: PSNR(Y)=36.866, SSIM(Y)=0.9718
+Epoch 33/150: Training loss=0.018684, lr=1.92e-03
+Epoch 33/150: Validation loss=0.023478
+Model saved! Best loss: 0.023478
+Set5: PSNR(Y)=37.262, SSIM(Y)=0.9574
+Set14: PSNR(Y)=32.849, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.611, SSIM(Y)=0.8921
+U100: PSNR(Y)=30.132, SSIM(Y)=0.9058
+M109: PSNR(Y)=36.876, SSIM(Y)=0.9718
+Epoch 34/150: Training loss=0.018679, lr=1.91e-03
+Epoch 34/150: Validation loss=0.023461
+Model saved! Best loss: 0.023461
+Set5: PSNR(Y)=37.264, SSIM(Y)=0.9574
+Set14: PSNR(Y)=32.849, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.614, SSIM(Y)=0.8922
+U100: PSNR(Y)=30.140, SSIM(Y)=0.9059
+M109: PSNR(Y)=36.884, SSIM(Y)=0.9718
+Epoch 35/150: Training loss=0.018670, lr=1.90e-03
+Epoch 35/150: Validation loss=0.023443
+Model saved! Best loss: 0.023443
+Set5: PSNR(Y)=37.268, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.853, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.617, SSIM(Y)=0.8922
+U100: PSNR(Y)=30.151, SSIM(Y)=0.9061
+M109: PSNR(Y)=36.893, SSIM(Y)=0.9719
+Epoch 36/150: Training loss=0.018657, lr=1.89e-03
+Epoch 36/150: Validation loss=0.023426
+Model saved! Best loss: 0.023426
+Set5: PSNR(Y)=37.270, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.859, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.620, SSIM(Y)=0.8923
+U100: PSNR(Y)=30.159, SSIM(Y)=0.9062
+M109: PSNR(Y)=36.899, SSIM(Y)=0.9719
+Epoch 37/150: Training loss=0.018663, lr=1.88e-03
+Epoch 37/150: Validation loss=0.023414
+Model saved! Best loss: 0.023414
+Set5: PSNR(Y)=37.271, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.859, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.624, SSIM(Y)=0.8923
+U100: PSNR(Y)=30.166, SSIM(Y)=0.9063
+M109: PSNR(Y)=36.908, SSIM(Y)=0.9719
+Epoch 38/150: Training loss=0.018643, lr=1.87e-03
+Epoch 38/150: Validation loss=0.023400
+Model saved! Best loss: 0.023400
+Set5: PSNR(Y)=37.273, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.860, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.626, SSIM(Y)=0.8924
+U100: PSNR(Y)=30.174, SSIM(Y)=0.9064
+M109: PSNR(Y)=36.915, SSIM(Y)=0.9720
+Epoch 39/150: Training loss=0.018631, lr=1.86e-03
+Epoch 39/150: Validation loss=0.023382
+Model saved! Best loss: 0.023382
+Set5: PSNR(Y)=37.274, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.865, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.629, SSIM(Y)=0.8924
+U100: PSNR(Y)=30.182, SSIM(Y)=0.9065
+M109: PSNR(Y)=36.929, SSIM(Y)=0.9720
+Epoch 40/150: Training loss=0.018625, lr=1.85e-03
+Epoch 40/150: Validation loss=0.023367
+Model saved! Best loss: 0.023367
+Set5: PSNR(Y)=37.275, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.868, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.631, SSIM(Y)=0.8924
+U100: PSNR(Y)=30.190, SSIM(Y)=0.9066
+M109: PSNR(Y)=36.939, SSIM(Y)=0.9720
+Epoch 41/150: Training loss=0.018619, lr=1.84e-03
+Epoch 41/150: Validation loss=0.023355
+Model saved! Best loss: 0.023355
+Set5: PSNR(Y)=37.275, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.869, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.634, SSIM(Y)=0.8925
+U100: PSNR(Y)=30.197, SSIM(Y)=0.9067
+M109: PSNR(Y)=36.944, SSIM(Y)=0.9721
+Epoch 42/150: Training loss=0.018598, lr=1.82e-03
+Epoch 42/150: Validation loss=0.023342
+Model saved! Best loss: 0.023342
+Set5: PSNR(Y)=37.275, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.873, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.636, SSIM(Y)=0.8925
+U100: PSNR(Y)=30.203, SSIM(Y)=0.9068
+M109: PSNR(Y)=36.952, SSIM(Y)=0.9721
+Epoch 43/150: Training loss=0.018595, lr=1.81e-03
+Epoch 43/150: Validation loss=0.023329
+Model saved! Best loss: 0.023329
+Set5: PSNR(Y)=37.277, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.875, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.639, SSIM(Y)=0.8925
+U100: PSNR(Y)=30.212, SSIM(Y)=0.9069
+M109: PSNR(Y)=36.957, SSIM(Y)=0.9721
+Epoch 44/150: Training loss=0.018591, lr=1.80e-03
+Epoch 44/150: Validation loss=0.023315
+Model saved! Best loss: 0.023315
+Set5: PSNR(Y)=37.278, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.877, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.641, SSIM(Y)=0.8926
+U100: PSNR(Y)=30.219, SSIM(Y)=0.9070
+M109: PSNR(Y)=36.968, SSIM(Y)=0.9721
+Epoch 45/150: Training loss=0.018580, lr=1.78e-03
+Epoch 45/150: Validation loss=0.023304
+Model saved! Best loss: 0.023304
+Set5: PSNR(Y)=37.278, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.877, SSIM(Y)=0.9108
+B100: PSNR(Y)=31.643, SSIM(Y)=0.8926
+U100: PSNR(Y)=30.225, SSIM(Y)=0.9071
+M109: PSNR(Y)=36.975, SSIM(Y)=0.9722
+Epoch 46/150: Training loss=0.018597, lr=1.77e-03
+Epoch 46/150: Validation loss=0.023296
+Model saved! Best loss: 0.023296
+Set5: PSNR(Y)=37.280, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.878, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.645, SSIM(Y)=0.8926
+U100: PSNR(Y)=30.230, SSIM(Y)=0.9071
+M109: PSNR(Y)=36.979, SSIM(Y)=0.9722
+Epoch 47/150: Training loss=0.018575, lr=1.75e-03
+Epoch 47/150: Validation loss=0.023285
+Model saved! Best loss: 0.023285
+Set5: PSNR(Y)=37.284, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.880, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.648, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.235, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.986, SSIM(Y)=0.9722
+Epoch 48/150: Training loss=0.018570, lr=1.74e-03
+Epoch 48/150: Validation loss=0.023274
+Model saved! Best loss: 0.023274
+Set5: PSNR(Y)=37.286, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.882, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.649, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.241, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.992, SSIM(Y)=0.9722
+Epoch 49/150: Training loss=0.018552, lr=1.72e-03
+Epoch 49/150: Validation loss=0.023267
+Model saved! Best loss: 0.023267
+Set5: PSNR(Y)=37.285, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.883, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.651, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.246, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.993, SSIM(Y)=0.9722
+Epoch 50/150: Training loss=0.018566, lr=1.71e-03
+Epoch 50/150: Validation loss=0.023260
+Model saved! Best loss: 0.023260
+Set5: PSNR(Y)=37.290, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.885, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.653, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.249, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.998, SSIM(Y)=0.9722
+Epoch 51/150: Training loss=0.018550, lr=1.69e-03
+Epoch 51/150: Validation loss=0.023253
+Model saved! Best loss: 0.023253
+Set5: PSNR(Y)=37.292, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.890, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.654, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.253, SSIM(Y)=0.9074
+M109: PSNR(Y)=37.002, SSIM(Y)=0.9723
+Epoch 52/150: Training loss=0.018536, lr=1.67e-03
+Epoch 52/150: Validation loss=0.023245
+Model saved! Best loss: 0.023245
+Set5: PSNR(Y)=37.292, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9109
+B100: PSNR(Y)=31.655, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.258, SSIM(Y)=0.9075
+M109: PSNR(Y)=37.006, SSIM(Y)=0.9723
+Epoch 53/150: Training loss=0.018552, lr=1.66e-03
+Epoch 53/150: Validation loss=0.023238
+Model saved! Best loss: 0.023238
+Set5: PSNR(Y)=37.293, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.891, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.657, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.261, SSIM(Y)=0.9076
+M109: PSNR(Y)=37.009, SSIM(Y)=0.9723
+Epoch 54/150: Training loss=0.018541, lr=1.64e-03
+Epoch 54/150: Validation loss=0.023233
+Model saved! Best loss: 0.023233
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.894, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.658, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.264, SSIM(Y)=0.9076
+M109: PSNR(Y)=37.009, SSIM(Y)=0.9723
+Epoch 55/150: Training loss=0.018534, lr=1.62e-03
+Epoch 55/150: Validation loss=0.023225
+Model saved! Best loss: 0.023225
+Set5: PSNR(Y)=37.296, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.896, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.660, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.267, SSIM(Y)=0.9076
+M109: PSNR(Y)=37.013, SSIM(Y)=0.9723
+Epoch 56/150: Training loss=0.018538, lr=1.60e-03
+Epoch 56/150: Validation loss=0.023220
+Model saved! Best loss: 0.023220
+Set5: PSNR(Y)=37.297, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.896, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.661, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.272, SSIM(Y)=0.9077
+M109: PSNR(Y)=37.015, SSIM(Y)=0.9723
+Epoch 57/150: Training loss=0.018522, lr=1.58e-03
+Epoch 57/150: Validation loss=0.023215
+Model saved! Best loss: 0.023215
+Set5: PSNR(Y)=37.300, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.898, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.662, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.275, SSIM(Y)=0.9077
+M109: PSNR(Y)=37.018, SSIM(Y)=0.9723
+Epoch 58/150: Training loss=0.018529, lr=1.56e-03
+Epoch 58/150: Validation loss=0.023205
+Model saved! Best loss: 0.023205
+Set5: PSNR(Y)=37.300, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.280, SSIM(Y)=0.9078
+M109: PSNR(Y)=37.026, SSIM(Y)=0.9723
+Epoch 59/150: Training loss=0.018520, lr=1.54e-03
+Epoch 59/150: Validation loss=0.023201
+Model saved! Best loss: 0.023201
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.900, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.284, SSIM(Y)=0.9078
+M109: PSNR(Y)=37.025, SSIM(Y)=0.9724
+Epoch 60/150: Training loss=0.018523, lr=1.52e-03
+Epoch 60/150: Validation loss=0.023194
+Model saved! Best loss: 0.023194
+Set5: PSNR(Y)=37.301, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.903, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.666, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.286, SSIM(Y)=0.9079
+M109: PSNR(Y)=37.028, SSIM(Y)=0.9724
+Epoch 61/150: Training loss=0.018529, lr=1.51e-03
+Epoch 61/150: Validation loss=0.023190
+Model saved! Best loss: 0.023190
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.289, SSIM(Y)=0.9079
+M109: PSNR(Y)=37.031, SSIM(Y)=0.9724
+Epoch 62/150: Training loss=0.018504, lr=1.48e-03
+Epoch 62/150: Validation loss=0.023182
+Model saved! Best loss: 0.023182
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.669, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.293, SSIM(Y)=0.9080
+M109: PSNR(Y)=37.034, SSIM(Y)=0.9724
+Epoch 63/150: Training loss=0.018492, lr=1.46e-03
+Epoch 63/150: Validation loss=0.023177
+Model saved! Best loss: 0.023177
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9110
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.296, SSIM(Y)=0.9080
+M109: PSNR(Y)=37.040, SSIM(Y)=0.9724
+Epoch 64/150: Training loss=0.018500, lr=1.44e-03
+Epoch 64/150: Validation loss=0.023172
+Model saved! Best loss: 0.023172
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9111
+B100: PSNR(Y)=31.671, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.299, SSIM(Y)=0.9080
+M109: PSNR(Y)=37.040, SSIM(Y)=0.9724
+Epoch 65/150: Training loss=0.018491, lr=1.42e-03
+Epoch 65/150: Validation loss=0.023166
+Model saved! Best loss: 0.023166
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9111
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.300, SSIM(Y)=0.9081
+M109: PSNR(Y)=37.045, SSIM(Y)=0.9724
+Epoch 66/150: Training loss=0.018497, lr=1.40e-03
+Epoch 66/150: Validation loss=0.023159
+Model saved! Best loss: 0.023159
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.912, SSIM(Y)=0.9111
+B100: PSNR(Y)=31.673, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.304, SSIM(Y)=0.9081
+M109: PSNR(Y)=37.049, SSIM(Y)=0.9724
+Epoch 67/150: Training loss=0.018485, lr=1.38e-03
+Epoch 67/150: Validation loss=0.023153
+Model saved! Best loss: 0.023153
+Set5: PSNR(Y)=37.312, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.915, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.307, SSIM(Y)=0.9082
+M109: PSNR(Y)=37.053, SSIM(Y)=0.9725
+Epoch 68/150: Training loss=0.018484, lr=1.36e-03
+Epoch 68/150: Validation loss=0.023149
+Model saved! Best loss: 0.023149
+Set5: PSNR(Y)=37.313, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.916, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.309, SSIM(Y)=0.9082
+M109: PSNR(Y)=37.054, SSIM(Y)=0.9725
+Epoch 69/150: Training loss=0.018471, lr=1.34e-03
+Epoch 69/150: Validation loss=0.023146
+Model saved! Best loss: 0.023146
+Set5: PSNR(Y)=37.314, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.912, SSIM(Y)=0.9111
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.312, SSIM(Y)=0.9082
+M109: PSNR(Y)=37.056, SSIM(Y)=0.9725
+Epoch 70/150: Training loss=0.018474, lr=1.32e-03
+Epoch 70/150: Validation loss=0.023141
+Model saved! Best loss: 0.023141
+Set5: PSNR(Y)=37.314, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.915, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8931
+U100: PSNR(Y)=30.314, SSIM(Y)=0.9082
+M109: PSNR(Y)=37.057, SSIM(Y)=0.9725
+Epoch 71/150: Training loss=0.018476, lr=1.29e-03
+Epoch 71/150: Validation loss=0.023138
+Model saved! Best loss: 0.023138
+Set5: PSNR(Y)=37.316, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.917, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.316, SSIM(Y)=0.9083
+M109: PSNR(Y)=37.056, SSIM(Y)=0.9725
+Epoch 72/150: Training loss=0.018463, lr=1.27e-03
+Epoch 72/150: Validation loss=0.023132
+Model saved! Best loss: 0.023132
+Set5: PSNR(Y)=37.318, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.917, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.318, SSIM(Y)=0.9083
+M109: PSNR(Y)=37.063, SSIM(Y)=0.9725
+Epoch 73/150: Training loss=0.018460, lr=1.25e-03
+Epoch 73/150: Validation loss=0.023129
+Model saved! Best loss: 0.023129
+Set5: PSNR(Y)=37.320, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.917, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.679, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.320, SSIM(Y)=0.9083
+M109: PSNR(Y)=37.066, SSIM(Y)=0.9725
+Epoch 74/150: Training loss=0.018461, lr=1.23e-03
+Epoch 74/150: Validation loss=0.023126
+Model saved! Best loss: 0.023126
+Set5: PSNR(Y)=37.322, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.920, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.680, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.322, SSIM(Y)=0.9084
+M109: PSNR(Y)=37.065, SSIM(Y)=0.9725
+Epoch 75/150: Training loss=0.018461, lr=1.20e-03
+Epoch 75/150: Validation loss=0.023121
+Model saved! Best loss: 0.023121
+Set5: PSNR(Y)=37.323, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.924, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.681, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.323, SSIM(Y)=0.9084
+M109: PSNR(Y)=37.065, SSIM(Y)=0.9725
+Epoch 76/150: Training loss=0.018457, lr=1.18e-03
+Epoch 76/150: Validation loss=0.023119
+Model saved! Best loss: 0.023119
+Set5: PSNR(Y)=37.324, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.922, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.682, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.325, SSIM(Y)=0.9084
+M109: PSNR(Y)=37.067, SSIM(Y)=0.9725
+Epoch 77/150: Training loss=0.018462, lr=1.16e-03
+Epoch 77/150: Validation loss=0.023114
+Model saved! Best loss: 0.023114
+Set5: PSNR(Y)=37.326, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.921, SSIM(Y)=0.9112
+B100: PSNR(Y)=31.682, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.328, SSIM(Y)=0.9084
+M109: PSNR(Y)=37.071, SSIM(Y)=0.9725
+Epoch 78/150: Training loss=0.018440, lr=1.14e-03
+Epoch 78/150: Validation loss=0.023108
+Model saved! Best loss: 0.023108
+Set5: PSNR(Y)=37.325, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.926, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.683, SSIM(Y)=0.8932
+U100: PSNR(Y)=30.331, SSIM(Y)=0.9085
+M109: PSNR(Y)=37.075, SSIM(Y)=0.9726
+Epoch 79/150: Training loss=0.018455, lr=1.11e-03
+Epoch 79/150: Validation loss=0.023105
+Model saved! Best loss: 0.023105
+Set5: PSNR(Y)=37.328, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.928, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.683, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.332, SSIM(Y)=0.9085
+M109: PSNR(Y)=37.078, SSIM(Y)=0.9726
+Epoch 80/150: Training loss=0.018447, lr=1.09e-03
+Epoch 80/150: Validation loss=0.023101
+Model saved! Best loss: 0.023101
+Set5: PSNR(Y)=37.329, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.928, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.685, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.334, SSIM(Y)=0.9085
+M109: PSNR(Y)=37.082, SSIM(Y)=0.9726
+Epoch 81/150: Training loss=0.018432, lr=1.07e-03
+Epoch 81/150: Validation loss=0.023097
+Model saved! Best loss: 0.023097
+Set5: PSNR(Y)=37.330, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.927, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.685, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.336, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.085, SSIM(Y)=0.9726
+Epoch 82/150: Training loss=0.018443, lr=1.04e-03
+Epoch 82/150: Validation loss=0.023095
+Model saved! Best loss: 0.023095
+Set5: PSNR(Y)=37.330, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.929, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.686, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.337, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.084, SSIM(Y)=0.9726
+Epoch 83/150: Training loss=0.018435, lr=1.02e-03
+Epoch 83/150: Validation loss=0.023091
+Model saved! Best loss: 0.023091
+Set5: PSNR(Y)=37.332, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.929, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.687, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.339, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.086, SSIM(Y)=0.9726
+Epoch 84/150: Training loss=0.018430, lr=9.98e-04
+Epoch 84/150: Validation loss=0.023088
+Model saved! Best loss: 0.023088
+Set5: PSNR(Y)=37.335, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.929, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.687, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.340, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.089, SSIM(Y)=0.9726
+Epoch 85/150: Training loss=0.018429, lr=9.75e-04
+Epoch 85/150: Validation loss=0.023088
+Model saved! Best loss: 0.023088
+Set5: PSNR(Y)=37.335, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.930, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.688, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.341, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.087, SSIM(Y)=0.9726
+Epoch 86/150: Training loss=0.018430, lr=9.52e-04
+Epoch 86/150: Validation loss=0.023086
+Model saved! Best loss: 0.023086
+Set5: PSNR(Y)=37.335, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.928, SSIM(Y)=0.9113
+B100: PSNR(Y)=31.688, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.343, SSIM(Y)=0.9086
+M109: PSNR(Y)=37.084, SSIM(Y)=0.9726
+Epoch 87/150: Training loss=0.018428, lr=9.29e-04
+Epoch 87/150: Validation loss=0.023084
+Model saved! Best loss: 0.023084
+Set5: PSNR(Y)=37.334, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.930, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.689, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.344, SSIM(Y)=0.9087
+M109: PSNR(Y)=37.083, SSIM(Y)=0.9726
+Epoch 88/150: Training loss=0.018427, lr=9.07e-04
+Epoch 88/150: Validation loss=0.023081
+Model saved! Best loss: 0.023081
+Set5: PSNR(Y)=37.333, SSIM(Y)=0.9578
+Set14: PSNR(Y)=32.933, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.690, SSIM(Y)=0.8933
+U100: PSNR(Y)=30.346, SSIM(Y)=0.9087
+M109: PSNR(Y)=37.084, SSIM(Y)=0.9726
+Epoch 89/150: Training loss=0.018413, lr=8.84e-04
+Epoch 89/150: Validation loss=0.023077
+Model saved! Best loss: 0.023077
+Set5: PSNR(Y)=37.336, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.935, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.691, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.347, SSIM(Y)=0.9087
+M109: PSNR(Y)=37.089, SSIM(Y)=0.9726
+Epoch 90/150: Training loss=0.018419, lr=8.61e-04
+Epoch 90/150: Validation loss=0.023074
+Model saved! Best loss: 0.023074
+Set5: PSNR(Y)=37.336, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.937, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.691, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.348, SSIM(Y)=0.9087
+M109: PSNR(Y)=37.093, SSIM(Y)=0.9726
+Epoch 91/150: Training loss=0.018412, lr=8.38e-04
+Epoch 91/150: Validation loss=0.023071
+Model saved! Best loss: 0.023071
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.939, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.692, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.349, SSIM(Y)=0.9087
+M109: PSNR(Y)=37.094, SSIM(Y)=0.9727
+Epoch 92/150: Training loss=0.018412, lr=8.15e-04
+Epoch 92/150: Validation loss=0.023068
+Model saved! Best loss: 0.023068
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.936, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.693, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.350, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.094, SSIM(Y)=0.9727
+Epoch 93/150: Training loss=0.018413, lr=7.93e-04
+Epoch 93/150: Validation loss=0.023066
+Model saved! Best loss: 0.023066
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.936, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.693, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.352, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.098, SSIM(Y)=0.9727
+Epoch 94/150: Training loss=0.018401, lr=7.70e-04
+Epoch 94/150: Validation loss=0.023064
+Model saved! Best loss: 0.023064
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.936, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.694, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.353, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.097, SSIM(Y)=0.9727
+Epoch 95/150: Training loss=0.018393, lr=7.48e-04
+Epoch 95/150: Validation loss=0.023062
+Model saved! Best loss: 0.023062
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.937, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.695, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.354, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.100, SSIM(Y)=0.9727
+Epoch 96/150: Training loss=0.018402, lr=7.26e-04
+Epoch 96/150: Validation loss=0.023059
+Model saved! Best loss: 0.023059
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.937, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.695, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.355, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.104, SSIM(Y)=0.9727
+Epoch 97/150: Training loss=0.018401, lr=7.04e-04
+Epoch 97/150: Validation loss=0.023058
+Model saved! Best loss: 0.023058
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.940, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.695, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.356, SSIM(Y)=0.9088
+M109: PSNR(Y)=37.104, SSIM(Y)=0.9727
+Epoch 98/150: Training loss=0.018397, lr=6.82e-04
+Epoch 98/150: Validation loss=0.023055
+Model saved! Best loss: 0.023055
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.941, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.695, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.357, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.105, SSIM(Y)=0.9727
+Epoch 99/150: Training loss=0.018389, lr=6.61e-04
+Epoch 99/150: Validation loss=0.023053
+Model saved! Best loss: 0.023053
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.942, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.696, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.358, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.103, SSIM(Y)=0.9727
+Epoch 100/150: Training loss=0.018392, lr=6.39e-04
+Epoch 100/150: Validation loss=0.023050
+Model saved! Best loss: 0.023050
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.942, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.697, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.360, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.105, SSIM(Y)=0.9727
+Epoch 101/150: Training loss=0.018392, lr=6.18e-04
+Epoch 101/150: Validation loss=0.023049
+Model saved! Best loss: 0.023049
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.942, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.697, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.361, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.107, SSIM(Y)=0.9727
+Epoch 102/150: Training loss=0.018389, lr=5.97e-04
+Epoch 102/150: Validation loss=0.023047
+Model saved! Best loss: 0.023047
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.944, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.697, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.362, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.106, SSIM(Y)=0.9727
+Epoch 103/150: Training loss=0.018373, lr=5.76e-04
+Epoch 103/150: Validation loss=0.023046
+Model saved! Best loss: 0.023046
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.944, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.698, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.362, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.106, SSIM(Y)=0.9727
+Epoch 104/150: Training loss=0.018386, lr=5.55e-04
+Epoch 104/150: Validation loss=0.023045
+Model saved! Best loss: 0.023045
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.943, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.698, SSIM(Y)=0.8934
+U100: PSNR(Y)=30.363, SSIM(Y)=0.9089
+M109: PSNR(Y)=37.108, SSIM(Y)=0.9727
+Epoch 105/150: Training loss=0.018370, lr=5.35e-04
+Epoch 105/150: Validation loss=0.023044
+Model saved! Best loss: 0.023044
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.943, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.698, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.363, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.109, SSIM(Y)=0.9727
+Epoch 106/150: Training loss=0.018371, lr=5.15e-04
+Epoch 106/150: Validation loss=0.023041
+Model saved! Best loss: 0.023041
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.945, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.699, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.364, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.110, SSIM(Y)=0.9727
+Epoch 107/150: Training loss=0.018375, lr=4.95e-04
+Epoch 107/150: Validation loss=0.023040
+Model saved! Best loss: 0.023040
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.942, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.699, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.365, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.112, SSIM(Y)=0.9727
+Epoch 108/150: Training loss=0.018367, lr=4.76e-04
+Epoch 108/150: Validation loss=0.023037
+Model saved! Best loss: 0.023037
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.943, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.699, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.366, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.113, SSIM(Y)=0.9727
+Epoch 109/150: Training loss=0.018364, lr=4.56e-04
+Epoch 109/150: Validation loss=0.023035
+Model saved! Best loss: 0.023035
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.946, SSIM(Y)=0.9114
+B100: PSNR(Y)=31.700, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.366, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.114, SSIM(Y)=0.9727
+Epoch 110/150: Training loss=0.018375, lr=4.37e-04
+Epoch 110/150: Validation loss=0.023034
+Model saved! Best loss: 0.023034
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.946, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.700, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.367, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.112, SSIM(Y)=0.9727
+Epoch 111/150: Training loss=0.018360, lr=4.19e-04
+Epoch 111/150: Validation loss=0.023032
+Model saved! Best loss: 0.023032
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.945, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.701, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.368, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.113, SSIM(Y)=0.9727
+Epoch 112/150: Training loss=0.018361, lr=4.00e-04
+Epoch 112/150: Validation loss=0.023032
+Model saved! Best loss: 0.023032
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.948, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.701, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.369, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.112, SSIM(Y)=0.9727
+Epoch 113/150: Training loss=0.018352, lr=3.83e-04
+Epoch 113/150: Validation loss=0.023031
+Model saved! Best loss: 0.023031
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.949, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.702, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.369, SSIM(Y)=0.9090
+M109: PSNR(Y)=37.115, SSIM(Y)=0.9727
+Epoch 114/150: Training loss=0.018348, lr=3.65e-04
+Epoch 114/150: Validation loss=0.023030
+Model saved! Best loss: 0.023030
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.949, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.702, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.369, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.116, SSIM(Y)=0.9728
+Epoch 115/150: Training loss=0.018352, lr=3.48e-04
+Epoch 115/150: Validation loss=0.023028
+Model saved! Best loss: 0.023028
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.947, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.702, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.370, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.118, SSIM(Y)=0.9728
+Epoch 116/150: Training loss=0.018353, lr=3.31e-04
+Epoch 116/150: Validation loss=0.023027
+Model saved! Best loss: 0.023027
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.949, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.703, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.370, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.117, SSIM(Y)=0.9728
+Epoch 117/150: Training loss=0.018336, lr=3.14e-04
+Epoch 117/150: Validation loss=0.023026
+Model saved! Best loss: 0.023026
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.949, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.703, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.371, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.117, SSIM(Y)=0.9728
+Epoch 118/150: Training loss=0.018355, lr=2.98e-04
+Epoch 118/150: Validation loss=0.023023
+Model saved! Best loss: 0.023023
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.703, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.371, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.119, SSIM(Y)=0.9728
+Epoch 119/150: Training loss=0.018345, lr=2.82e-04
+Epoch 119/150: Validation loss=0.023024
+Epoch 120/150: Training loss=0.018347, lr=2.67e-04
+Epoch 120/150: Validation loss=0.023022
+Model saved! Best loss: 0.023022
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.948, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.704, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.373, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.117, SSIM(Y)=0.9728
+Epoch 121/150: Training loss=0.018342, lr=2.52e-04
+Epoch 121/150: Validation loss=0.023021
+Model saved! Best loss: 0.023021
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.947, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.704, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.373, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.120, SSIM(Y)=0.9728
+Epoch 122/150: Training loss=0.018335, lr=2.37e-04
+Epoch 122/150: Validation loss=0.023019
+Model saved! Best loss: 0.023019
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.947, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.704, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.374, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.119, SSIM(Y)=0.9728
+Epoch 123/150: Training loss=0.018339, lr=2.23e-04
+Epoch 123/150: Validation loss=0.023018
+Model saved! Best loss: 0.023018
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.704, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.374, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.120, SSIM(Y)=0.9728
+Epoch 124/150: Training loss=0.018348, lr=2.09e-04
+Epoch 124/150: Validation loss=0.023018
+Model saved! Best loss: 0.023018
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.949, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.374, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.121, SSIM(Y)=0.9728
+Epoch 125/150: Training loss=0.018331, lr=1.96e-04
+Epoch 125/150: Validation loss=0.023017
+Model saved! Best loss: 0.023017
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.946, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.375, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 126/150: Training loss=0.018328, lr=1.83e-04
+Epoch 126/150: Validation loss=0.023015
+Model saved! Best loss: 0.023015
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.376, SSIM(Y)=0.9091
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 127/150: Training loss=0.018344, lr=1.70e-04
+Epoch 127/150: Validation loss=0.023015
+Model saved! Best loss: 0.023015
+Set5: PSNR(Y)=37.337, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8935
+U100: PSNR(Y)=30.377, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 128/150: Training loss=0.018335, lr=1.58e-04
+Epoch 128/150: Validation loss=0.023014
+Model saved! Best loss: 0.023014
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.377, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 129/150: Training loss=0.018330, lr=1.47e-04
+Epoch 129/150: Validation loss=0.023013
+Model saved! Best loss: 0.023013
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.377, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 130/150: Training loss=0.018331, lr=1.36e-04
+Epoch 130/150: Validation loss=0.023013
+Model saved! Best loss: 0.023013
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.948, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.705, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.378, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.124, SSIM(Y)=0.9728
+Epoch 131/150: Training loss=0.018315, lr=1.25e-04
+Epoch 131/150: Validation loss=0.023012
+Model saved! Best loss: 0.023012
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.377, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.124, SSIM(Y)=0.9728
+Epoch 132/150: Training loss=0.018314, lr=1.15e-04
+Epoch 132/150: Validation loss=0.023011
+Model saved! Best loss: 0.023011
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.953, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.378, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 133/150: Training loss=0.018321, lr=1.06e-04
+Epoch 133/150: Validation loss=0.023011
+Model saved! Best loss: 0.023011
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.379, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 134/150: Training loss=0.018321, lr=9.65e-05
+Epoch 134/150: Validation loss=0.023010
+Model saved! Best loss: 0.023010
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.379, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 135/150: Training loss=0.018319, lr=8.78e-05
+Epoch 135/150: Validation loss=0.023009
+Model saved! Best loss: 0.023009
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.379, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.124, SSIM(Y)=0.9728
+Epoch 136/150: Training loss=0.018326, lr=7.97e-05
+Epoch 136/150: Validation loss=0.023008
+Model saved! Best loss: 0.023008
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.706, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.380, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.124, SSIM(Y)=0.9728
+Epoch 137/150: Training loss=0.018315, lr=7.21e-05
+Epoch 137/150: Validation loss=0.023009
+Epoch 138/150: Training loss=0.018312, lr=6.50e-05
+Epoch 138/150: Validation loss=0.023008
+Model saved! Best loss: 0.023008
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.381, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 139/150: Training loss=0.018315, lr=5.84e-05
+Epoch 139/150: Validation loss=0.023007
+Model saved! Best loss: 0.023007
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.381, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 140/150: Training loss=0.018327, lr=5.23e-05
+Epoch 140/150: Validation loss=0.023007
+Model saved! Best loss: 0.023007
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.381, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 141/150: Training loss=0.018314, lr=4.67e-05
+Epoch 141/150: Validation loss=0.023007
+Model saved! Best loss: 0.023007
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.953, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.381, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.123, SSIM(Y)=0.9728
+Epoch 142/150: Training loss=0.018315, lr=4.16e-05
+Epoch 142/150: Validation loss=0.023006
+Model saved! Best loss: 0.023006
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.953, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.381, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.124, SSIM(Y)=0.9728
+Epoch 143/150: Training loss=0.018327, lr=3.71e-05
+Epoch 143/150: Validation loss=0.023006
+Epoch 144/150: Training loss=0.018321, lr=3.31e-05
+Epoch 144/150: Validation loss=0.023006
+Model saved! Best loss: 0.023006
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.382, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 145/150: Training loss=0.018319, lr=2.96e-05
+Epoch 145/150: Validation loss=0.023006
+Model saved! Best loss: 0.023006
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.382, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.121, SSIM(Y)=0.9728
+Epoch 146/150: Training loss=0.018323, lr=2.67e-05
+Epoch 146/150: Validation loss=0.023005
+Model saved! Best loss: 0.023005
+Set5: PSNR(Y)=37.340, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.950, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.121, SSIM(Y)=0.9728
+Epoch 147/150: Training loss=0.018319, lr=2.43e-05
+Epoch 147/150: Validation loss=0.023005
+Model saved! Best loss: 0.023005
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.951, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.707, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.121, SSIM(Y)=0.9728
+Epoch 148/150: Training loss=0.018312, lr=2.24e-05
+Epoch 148/150: Validation loss=0.023004
+Model saved! Best loss: 0.023004
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.708, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+Epoch 149/150: Training loss=0.018321, lr=2.11e-05
+Epoch 149/150: Validation loss=0.023004
+Model saved! Best loss: 0.023004
+Set5: PSNR(Y)=37.339, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.708, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.121, SSIM(Y)=0.9728
+Epoch 150/150: Training loss=0.018316, lr=2.03e-05
+Epoch 150/150: Validation loss=0.023004
+Model saved! Best loss: 0.023004
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.708, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+==================================================
+Training Finished
+==================================================
+==================================================
+Testing Best Model
+==================================================
+Set5: PSNR(Y)=37.338, SSIM(Y)=0.9579
+Set14: PSNR(Y)=32.952, SSIM(Y)=0.9115
+B100: PSNR(Y)=31.708, SSIM(Y)=0.8936
+U100: PSNR(Y)=30.383, SSIM(Y)=0.9092
+M109: PSNR(Y)=37.122, SSIM(Y)=0.9728
+==================================================
+Testing Bicubic Interpolation
+==================================================
+Set5: PSNR(Y)=33.977, SSIM(Y)=0.9332
+Set14: PSNR(Y)=30.522, SSIM(Y)=0.8746
+B100: PSNR(Y)=29.703, SSIM(Y)=0.8490
+U100: PSNR(Y)=27.048, SSIM(Y)=0.8448
+M109: PSNR(Y)=31.150, SSIM(Y)=0.9374

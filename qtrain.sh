@@ -1,0 +1,20 @@
+python qtrain.py \
+  --model_name "QDPSR" \
+  --scale 2 \
+  --channel_nums 32 \
+  --num_blocks 5 \
+  --epochs 50 \
+  --batch_size 64 \
+  --lr 5e-4 \
+  --minlr 1e-5 \
+  --num_workers 8 \
+  --save_dir "./checkpoints" \
+  --device "cuda" \
+  --in_channels 3 \
+  --patch_size 0 \
+  --w_bits 4 \
+  --a_bits 4 \
+  --warmup_epochs 10 \
+  --ema_decay 0.999 \
+  --init_from_fp \
+  --fp_ckpt "./checkpoints/DPSR_x2_0320_1349.pth"
