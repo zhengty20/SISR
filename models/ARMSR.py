@@ -1,7 +1,7 @@
 import torch
 from typing import Tuple, Dict
 from torch import Tensor
-from .usm import usm_interpolation
+from .Bilinear import bilinear_interpolation
 
 class ARMSR:
     def __init__(self, patch_size: Tuple[int, int], scale_factor: int, overlap: int = 0, device: str = 'cuda'):
@@ -122,7 +122,7 @@ class ARMSR:
         with torch.no_grad():
             for i in range(0, total_patches):
                 lr = lr_patches[i : i + 1, :, :, :]
-                hr_patches[i] = usm_interpolation(lr, self.scale)
+                hr_patches[i] = bilinear_interpolation(lr, self.scale)
         
         result = patch_data.copy()
         result['hr_patches'] = hr_patches

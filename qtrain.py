@@ -27,21 +27,22 @@ def main():
         scale=args.scale,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        patch_size=args.patch_size
+        patch_size=args.patch_size,
+        in_channels=args.in_channels
     )
                                    
-    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale)
-    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale)
-    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale)
-    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale)
-    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale)
+    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale, in_channels=args.in_channels)
+    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
+    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
+    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
+    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
     
     time_stamp = datetime.now().strftime("%m%d_%H%M")
     # 创建保存目录
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
-    model = QISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    model = QISCSR(scale = args.scale, in_dim = args.in_channels, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
     # model = ISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
 
     # 统计模型参数量
@@ -137,11 +138,11 @@ def main():
     logger.log_training_finished()
 
     logger.log_testing_start("Best Model")
-    net = QISCSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    net = QISCSR(scale = args.scale, in_dim = args.in_channels, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     
     with torch.no_grad():
-        dummy_input = torch.randn(1, 3, 32, 32).to(device)
+        dummy_input = torch.randn(1, args.in_channels, 32, 32).to(device)
         _ = net(dummy_input)
     
     net.load_state_dict(state_dict['model_state_dict'])

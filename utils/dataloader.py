@@ -14,9 +14,24 @@ def default_patch_size(scale):
 def collect_shard_files(root_dir):
     return sorted(str(path) for path in Path(root_dir).rglob('*.pt'))
 
+
+def rgb_to_y_uint8(img):
+    if img.dim() != 3:
+        raise ValueError(f'期望输入为 CHW 张量，当前维度: {tuple(img.shape)}')
+    if img.shape[0] == 1:
+        return img
+    if img.shape[0] != 3:
+        raise ValueError(f'仅支持 1 或 3 通道，当前通道数: {img.shape[0]}')
+    img_f = img.to(torch.float32)
+    y = (img_f[0] * 65.481 + img_f[1] * 128.553 + img_f[2] * 24.966 + 16.0) / 255.0
+    return y.unsqueeze(0).round().clamp(0, 255).to(torch.uint8)
+
 class SRTrainDataset(Dataset):
-    def __init__(self, train_dir, scale, patch_size=0):
+    def __init__(self, train_dir, scale, patch_size=0, in_channels=3):
         self.scale = scale
+        self.in_channels = in_channels
+        if self.in_channels not in (1, 3):
+            raise ValueError(f'in_channels 仅支持 1 或 3，当前为 {self.in_channels}')
         self.patch_size = patch_size if patch_size > 0 else default_patch_size(scale)
         if self.patch_size % scale != 0:
             raise ValueError(f'patch_size={self.patch_size} 必须能被 scale={scale} 整除')
@@ -43,8 +58,14 @@ class SRTrainDataset(Dataset):
             if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names) or len(hr_batch) != len(dataset_names):
                 raise ValueError(f'{file_path} 中 names/dataset_names/HR/LR 数量不一致')
 
-            self.hr_data.extend(list(hr_batch))
-            self.lr_data.extend(list(lr_batch))
+            hr_list = list(hr_batch)
+            lr_list = list(lr_batch)
+            if self.in_channels == 1:
+                hr_list = [rgb_to_y_uint8(img) for img in hr_list]
+                lr_list = [rgb_to_y_uint8(img) for img in lr_list]
+
+            self.hr_data.extend(hr_list)
+            self.lr_data.extend(lr_list)
             self.dataset_names.extend(list(dataset_names))
 
         dataset_counts = Counter(self.dataset_names)
@@ -102,7 +123,10 @@ class SRTrainDataset(Dataset):
         return lr, hr
 
 class SRValDataset(Dataset):
-    def __init__(self, val_dir, scale):
+    def __init__(self, val_dir, scale, in_channels=3):
+        self.in_channels = in_channels
+        if self.in_channels not in (1, 3):
+            raise ValueError(f'in_channels 仅支持 1 或 3，当前为 {self.in_channels}')
         shard_files = sorted(
             os.path.join(val_dir, file_name)
             for file_name in os.listdir(val_dir)
@@ -131,6 +155,9 @@ class SRValDataset(Dataset):
             for name, hr, lr in zip(names, hr_batch, lr_batch):
                 if hr.shape[-2] < lr.shape[-2] * scale or hr.shape[-1] < lr.shape[-1] * scale:
                     raise ValueError(f'{file_path} 中 {name} 的 HR/LR 尺寸不匹配')
+                if self.in_channels == 1:
+                    hr = rgb_to_y_uint8(hr)
+                    lr = rgb_to_y_uint8(lr)
                 self.names.append(name)
                 self.hr_data.append(hr)
                 self.lr_data.append(lr)
@@ -144,8 +171,8 @@ class SRValDataset(Dataset):
     def __getitem__(self, idx):
         return self.lr_data[idx], self.hr_data[idx]
 
-def create_train_loader(datasets_dir, scale=2, batch_size=64, num_workers=8, patch_size=0):
-    dataset = SRTrainDataset(datasets_dir, scale=scale, patch_size=patch_size)
+def create_train_loader(datasets_dir, scale=2, batch_size=64, num_workers=8, patch_size=0, in_channels=3):
+    dataset = SRTrainDataset(datasets_dir, scale=scale, patch_size=patch_size, in_channels=in_channels)
     sampler = WeightedRandomSampler(
         weights=dataset.sample_weights,
         num_samples=len(dataset),
@@ -154,15 +181,15 @@ def create_train_loader(datasets_dir, scale=2, batch_size=64, num_workers=8, pat
     train_loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        sampler=sampler,
+        sampler=None,
         num_workers=num_workers,
         pin_memory=True,
         persistent_workers=num_workers > 0
     )
     return train_loader
 
-def create_val_loader(datasets_dir, scale=2):
+def create_val_loader(datasets_dir, scale=2, in_channels=3):
     val_dir = os.path.join(datasets_dir)
-    dataset = SRValDataset(val_dir, scale)
+    dataset = SRValDataset(val_dir, scale, in_channels=in_channels)
     val_loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
     return val_loader

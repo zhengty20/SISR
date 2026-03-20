@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from models.usm import bilinear_interpolate_hdl
+from models.Bilinear import bilinear_interpolate_hdl
 
 def interp(image: torch.Tensor, scale_factor: int):
     """torch版定点双线性插值（单通道2D输入）。"""

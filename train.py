@@ -7,9 +7,9 @@ import copy
 from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
-from models import DPSR
+from models import DPSR, FSRCNN
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, basic_metrics, create_logger, \
-create_train_loader, create_val_loader, WarmupCosineScheduler, PSNRLoss
+create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,14 +27,15 @@ def main():
         scale=args.scale,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
-        patch_size=args.patch_size
+        patch_size=args.patch_size,
+        in_channels=args.in_channels
     )
                                    
-    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale)
-    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale)
-    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale)
-    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale)
-    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale)
+    val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale, in_channels=args.in_channels)
+    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
+    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
+    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
+    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
     val_loaders = {
         'Set5': val_loader_set5,
         'Set14': val_loader_set14,
@@ -48,17 +49,23 @@ def main():
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
-    model = DPSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
-
+    # model = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
+    model = FSRCNN(scale=args.scale, in_dim=args.in_channels, d_dim=56, s_dim=12, num_blocks=4).to(device)
+    
     # 统计模型参数量
     total_params = model.param_num()
     logger.info(f"模型总参数量: {total_params:,}")
 
     # 损失函数  
-    loss_func = PSNRLoss(toY=True)
+    loss_func = MixedLoss(eps=1e-8, gamma=0)
 
     # 优化器
-    optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
+    # optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
+    optimizer = optim.Adam([
+        {'params': model.first_part.parameters()},
+        {'params': model.mid_part.parameters()},
+        {'params': model.last_part.parameters(), 'lr': args.lr * 0.1}
+    ], lr=args.lr)
     
     # EMA
     ema = ExponentialMovingAverage(model.parameters(), decay=args.ema_decay)
@@ -69,7 +76,7 @@ def main():
         total_epochs=args.epochs,
         warmup_epochs=args.warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=5e-5
+        warmup_start_lr=1e-4
     )
 
     # 记录训练开始信息
@@ -77,7 +84,7 @@ def main():
                               len(val_loader_set5) + len(val_loader_set14) + len(val_loader_b100) + len(val_loader_u100) + len(val_loader_m109))
 
     # 训练循环
-    best_val_loss = 20.0
+    best_val_loss = 10.0
 
     logger.info("Begin Training")
     for epoch in range(args.epochs):
@@ -125,7 +132,10 @@ def main():
     logger.log_training_finished()
 
     logger.log_testing_start("Best Model")
-    net = DPSR(scale = args.scale, in_dim = 3, fea_dim = args.channel_nums, num_blocks = args.num_blocks, bias = False).to(device)
+    if args.model_name.upper() == 'DPSR':
+        net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
+    else:
+        net = FSRCNN(scale=args.scale, in_dim=args.in_channels, d_dim=56, s_dim=12, num_blocks=4).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict['model_state_dict'])

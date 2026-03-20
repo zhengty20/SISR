@@ -8,8 +8,14 @@ def calculate_psnr(img1, img2):
 
     assert img1.shape == img2.shape, f'Image shapes are different: {img1.shape}, {img2.shape}.'
 
-    img1 = to_y_channel(img1).to(torch.float32)
-    img2 = to_y_channel(img2).to(torch.float32)
+    if img1.shape[0] == 3:
+        img1 = to_y_channel(img1).to(torch.float32)
+        img2 = to_y_channel(img2).to(torch.float32)
+    elif img1.shape[0] == 1:
+        img1 = img1[0].to(torch.float32)
+        img2 = img2[0].to(torch.float32)
+    else:
+        raise ValueError(f'仅支持 1 或 3 通道，当前通道数: {img1.shape[0]}')
 
     mse = torch.mean((img1 - img2) ** 2)
     if mse == 0:
@@ -23,8 +29,14 @@ def calculate_ssim(img1, img2):
 
     assert img1.shape == img2.shape, f'Image shapes are different: {img1.shape}, {img2.shape}.'
 
-    img1 = to_y_channel(img1).unsqueeze(0).unsqueeze(0).to(torch.float32)
-    img2 = to_y_channel(img2).unsqueeze(0).unsqueeze(0).to(torch.float32)
+    if img1.shape[0] == 3:
+        img1 = to_y_channel(img1).unsqueeze(0).unsqueeze(0).to(torch.float32)
+        img2 = to_y_channel(img2).unsqueeze(0).unsqueeze(0).to(torch.float32)
+    elif img1.shape[0] == 1:
+        img1 = img1.unsqueeze(0).to(torch.float32)
+        img2 = img2.unsqueeze(0).to(torch.float32)
+    else:
+        raise ValueError(f'仅支持 1 或 3 通道，当前通道数: {img1.shape[0]}')
 
     ssim = pssim(img1, img2, data_range=255.0)
 
@@ -45,8 +57,8 @@ class MixedLoss(nn.Module):
 
     def forward(self, pred, target):
         loss1 = self.Charbonnier_Loss(pred, target)
-        loss2 = self.Frequency_Loss(pred, target)
-        return loss1 + self.gamma * loss2
+        loss2 = 0.0 if self.gamma == 0.0 else self.gamma * self.Frequency_Loss(pred, target)
+        return loss1 + loss2
 
     def Charbonnier_Loss(self, pred, target):
         diff = pred - target

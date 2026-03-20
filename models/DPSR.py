@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 class Block(nn.Module):
-    
     def __init__(self, fea_dim, bias = True):
         super(Block, self).__init__()
         
@@ -40,7 +39,6 @@ class Block(nn.Module):
         return total
 
 class DPSR(nn.Module):
-
     def __init__(self, scale, in_dim, fea_dim, num_blocks=2, bias=True):
         super(DPSR, self).__init__()
 

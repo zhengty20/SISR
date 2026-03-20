@@ -11,15 +11,11 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
 
     pbar = tqdm(train_loader, desc=f'Epoch {epoch + 1}', leave=False)
     for lr_img, hr_img in pbar:
-        lr_img = lr_img.to(device).float()
-        hr_img = hr_img.to(device).float()
-
+       
+        lr_img, hr_img = lr_img.to(device).float().div(255.), hr_img.to(device).float().div(255.)
         optimizer.zero_grad(set_to_none=True)
-        base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
-        # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
-        lr_img = lr_img.div(255.)
-        sr_img = model(lr_img) * 255. + base_img
-
+        # base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+        sr_img = model(lr_img)
         loss = loss_func(sr_img, hr_img)
         loss.backward()
         optimizer.step()
@@ -40,12 +36,9 @@ def validate_epoch(model, val_loader, loss_func, device):
         vpbar = tqdm(val_loader, desc='loss-validating', leave=False)
         for lr_img, hr_img in vpbar:
                 
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
-            # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
-            lr_img = lr_img.div(255.)
-            sr_img = model(lr_img) * 255. + base_img       
-            
+            lr_img, hr_img = lr_img.to(device).float().div(255.), hr_img.to(device).float().div(255.)
+            # base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+            sr_img = model(lr_img) 
             loss = loss_func(sr_img, hr_img)
             val_loss += loss.item()
             
@@ -61,13 +54,10 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=1.0):
         vpbar = tqdm(val_loader, desc='metric-validating', leave=False)
         for lr_img, hr_img in vpbar:
                 
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            
-            lr_img_norm = lr_img.div(255.)
-            sr_img_norm = model(lr_img_norm)
-            base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
-            # base_img = F.interpolate(lr_img, scale_factor=model.scale, mode='bicubic', align_corners=False)
-            sr_img = ((sr_img_norm * 255.).round() + base_img).clamp(0, 255)
+            lr_img, hr_img = lr_img.to(device).float().div(255.), hr_img.to(device).float()
+            # base_img = bilinear_interpolation(lr_img, model.scale, bit8=True)
+            sr_img = model(lr_img)
+            sr_img = (sr_img * 255.).round().clamp(0, 255)
             
             crop_border = scale
             sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
