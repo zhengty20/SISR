@@ -51,8 +51,7 @@ class DPSR(nn.Module):
         for _ in range(num_blocks):
             self.body.append(Block(fea_dim, bias=bias))
 
-        self.tail1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=bias, groups=fea_dim)
-        self.tail2 = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=1, padding=0, bias=bias)
+        self.tail = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=3, padding=1, bias=bias)
 
         self.upsampler = nn.PixelShuffle(scale)
         self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
@@ -64,8 +63,7 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail1(y)
-        y = self.tail2(y)
+        y = self.tail(y)
         y = self.alpha * self.upsampler(y)
 
         return y
@@ -78,8 +76,7 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             total += self.body[i].param_num()
 
-        total += sum(p.numel() for p in self.tail1.parameters())
-        total += sum(p.numel() for p in self.tail2.parameters())
+        total += sum(p.numel() for p in self.tail.parameters())
 
         return total
 
