@@ -56,7 +56,7 @@ def main():
     logger.info(f"模型总参数量: {total_params:,}")
 
     # 损失函数  
-    loss_func = MixedLoss(eps=1e-8, gamma=0.2)
+    loss_func = MixedLoss(eps=1e-8, gamma=0.25)
 
     # 优化器
     optimizer = optim.Adam(model.parameters(), betas=(0.9, 0.999), lr=args.lr)
@@ -70,7 +70,7 @@ def main():
         total_epochs=args.epochs,
         warmup_epochs=args.warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=2e-4
+        warmup_start_lr=3e-4
     )
 
     # 记录训练开始信息

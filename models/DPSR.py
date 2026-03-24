@@ -9,8 +9,8 @@ class Block(nn.Module):
         self.fea_dim = fea_dim
 
         self.projection1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=1, padding=0, bias=self.bias)
-        self.filter1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=self.bias, groups=fea_dim)
         self.projection2 = nn.Conv2d(fea_dim, fea_dim, kernel_size=1, padding=0, bias=self.bias)
+        self.filter1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=self.bias, groups=fea_dim)
         self.filter2 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=self.bias, groups=fea_dim)
 
         self.act1 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
@@ -18,12 +18,12 @@ class Block(nn.Module):
 
     def forward(self, x):
 
-        y = self.projection1(x) 
-        y = self.filter1(y)
+        y = self.filter1(x)
+        y = self.projection1(y)   
         y = self.act1(y)
         
-        y = self.projection2(y)
         y = self.filter2(y)
+        y = self.projection2(y)
         y = self.act2(y) + x
 
         return y

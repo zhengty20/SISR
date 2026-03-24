@@ -2,15 +2,15 @@ python train.py \
   --model_name "DPSR" \
   --scale 2 \
   --channel_nums 32 \
-  --num_blocks 5 \
+  --num_blocks 4 \
   --epochs 200 \
   --batch_size 64 \
-  --lr 2e-3 \
-  --minlr 2e-5 \
+  --lr 3e-3 \
+  --minlr 4e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
   --patch_size 0 \
-  --warmup_epochs 20 \
+  --warmup_epochs 15 \
   --ema_decay 0.999 \

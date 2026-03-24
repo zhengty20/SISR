@@ -108,7 +108,7 @@ def main():
         total_epochs=args.epochs,
         warmup_epochs=args.warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=5e-5
+        warmup_start_lr=1e-4
     )
    
     # 记录训练开始信息
@@ -172,8 +172,7 @@ def main():
         num_blocks=args.num_blocks,
         bias=False,
         weight_bitwidth=args.w_bits,
-        activation_bitwidth=args.a_bits,
-        pact_alpha_init=args.pact_alpha_init,
+        activation_bitwidth=args.a_bits
     ).to(device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     net.load_state_dict(state_dict['model_state_dict'])

@@ -26,6 +26,15 @@ class QBlock(nn.Module):
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=activation_bitwidth
         )
+        self.projection2 = QConv2d(
+            fea_dim,
+            fea_dim,
+            kernel_size=1,
+            padding=0,
+            bias=self.bias,
+            weight_bitwidth=weight_bitwidth,
+            activation_bitwidth=activation_bitwidth
+        )
         self.filter1 = QConv2d(
             fea_dim,
             fea_dim,
@@ -33,15 +42,6 @@ class QBlock(nn.Module):
             padding=1,
             bias=self.bias,
             groups=fea_dim,
-            weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
-        )
-        self.projection2 = QConv2d(
-            fea_dim,
-            fea_dim,
-            kernel_size=1,
-            padding=0,
-            bias=self.bias,
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=activation_bitwidth
         )
@@ -60,12 +60,12 @@ class QBlock(nn.Module):
 
     def forward(self, x):
 
-        y = self.projection1(x)
-        y = self.filter1(y)
+        y = self.filter1(x)
+        y = self.projection1(y)
         y = self.act1(y)
 
-        y = self.projection2(y)
         y = self.filter2(y)
+        y = self.projection2(y)
         y = self.act2(y) + x
 
         return y
@@ -100,11 +100,11 @@ class QDPSR(nn.Module):
         self.head = QConv2d(
             in_dim,
             fea_dim,
-            kernel_size=3,
-            padding=1,
+            kernel_size=1,
+            padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8
+            activation_bitwidth=activation_bitwidth
         )
 
         self.body = nn.ModuleList()
@@ -118,16 +118,26 @@ class QDPSR(nn.Module):
                 )
             )
 
-        self.tail = QConv2d(
+        self.tail_filter = QConv2d(
             fea_dim,
-            in_dim * scale ** 2,
+            fea_dim,
             kernel_size=3,
             padding=1,
             bias=bias,
+            groups=fea_dim,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8
+            activation_bitwidth=activation_bitwidth
         )
-
+        self.tail_projection = QConv2d(
+            fea_dim,
+            in_dim * scale ** 2,
+            kernel_size=1,
+            padding=0,
+            bias=bias,
+            weight_bitwidth=weight_bitwidth,
+            activation_bitwidth=activation_bitwidth
+        )
+        
         self.upsampler = nn.PixelShuffle(scale)
         self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
 
@@ -138,7 +148,8 @@ class QDPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail(y)
+        y = self.tail_filter(y)
+        y = self.tail_projection(y)
         y = self.alpha * self.upsampler(y)
 
         return y
@@ -149,6 +160,7 @@ class QDPSR(nn.Module):
         total += sum(p.numel() for p in self.head.conv.parameters())
         for i in range(len(self.body)):
             total += self.body[i].param_num()
-        total += sum(p.numel() for p in self.tail.conv.parameters())
+        total += sum(p.numel() for p in self.tail_filter.conv.parameters())
+        total += sum(p.numel() for p in self.tail_projection.conv.parameters())
 
         return total

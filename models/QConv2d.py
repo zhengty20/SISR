@@ -25,52 +25,71 @@ class ScaleGradient(torch.autograd.Function):
 
 
 class LSQQuantizer(nn.Module):
-    def __init__(self, bitwidth, is_activation=False, per_channel=False, channels=None, eps=1e-8):
+    def __init__(self, bitwidth, is_activation=False, channels=None, eps=1e-8):
         super().__init__()
         if bitwidth < 2:
             raise ValueError("LSQ bitwidth must be >= 2")
 
         self.bitwidth = bitwidth
         self.is_activation = is_activation
-        self.per_channel = per_channel
         self.q_n = -2 ** (bitwidth - 1)
         self.q_p = 2 ** (bitwidth - 1) - 1
         self.eps = eps
-        if self.per_channel:
-            if channels is None:
-                raise ValueError("per_channel=True 时必须提供 channels")
-            self.s = nn.Parameter(torch.ones(channels, 1, 1, 1))
-        else:
+        if self.is_activation:
             self.s = nn.Parameter(torch.tensor(1.0))
+        else:
+            if channels is None:
+                raise ValueError("权重量化必须提供 channels")
+            self.s = nn.Parameter(torch.ones(channels, 1, 1, 1))
+        self.beta = nn.Parameter(torch.tensor(0.0)) if self.is_activation else None
         self.initialized = False
 
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict, missing_keys, unexpected_keys, error_msgs):
+        super()._load_from_state_dict(
+            state_dict,
+            prefix,
+            local_metadata,
+            strict,
+            missing_keys,
+            unexpected_keys,
+            error_msgs,
+        )
+        # If quantization parameters are loaded from checkpoint, keep them and skip runtime re-init.
+        self.initialized = True
+
     def _init_from_tensor(self, x):
-        if self.per_channel:
+        if self.is_activation:
+            x_min = x.detach().min()
+            x_max = x.detach().max()
+            s_init = (x_max - x_min) / max(1.0, float(self.q_p - self.q_n))
+            s_init = torch.clamp(s_init, min=self.eps)
+            beta_init = x_min - s_init * self.q_n
+            self.beta.data.copy_(beta_init)
+        else:
             reduce_dims = tuple(range(1, x.dim()))
             mean_abs = x.detach().abs().mean(dim=reduce_dims, keepdim=True)
             s_init = (2.0 * mean_abs) / (self.q_p ** 0.5)
-        else:
-            mean_abs = x.detach().abs().mean()
-            s_init = (2.0 * mean_abs) / (self.q_p ** 0.5)
         s_init = torch.clamp(s_init, min=self.eps)
-        if self.per_channel:
-            self.s.data.copy_(s_init.view_as(self.s))
-        else:
+        if self.is_activation:
             self.s.data.copy_(s_init)
+        else:
+            self.s.data.copy_(s_init.view_as(self.s))
         self.initialized = True
 
     def forward(self, x):
         if not self.initialized:
             self._init_from_tensor(x)
 
-        if self.per_channel:
-            n = x[0].numel()
-        else:
-            n = x.numel()
+        n = x.numel() if self.is_activation else x[0].numel()
         grad_scale = 1.0 / ((n * self.q_p) ** 0.5)
         s_scaled = ScaleGradient.apply(self.s, grad_scale)
         s_safe = torch.clamp(s_scaled, min=self.eps)
-
+        if self.is_activation:
+            beta_scaled = self.beta
+            x_int = (x - beta_scaled) / s_safe
+            x_int = torch.clamp(x_int, self.q_n, self.q_p)
+            x_int = RoundSTE.apply(x_int)
+            return x_int * s_safe + beta_scaled
         x_int = x / s_safe
         x_int = torch.clamp(x_int, self.q_n, self.q_p)
         x_int = RoundSTE.apply(x_int)
@@ -86,7 +105,7 @@ class QConv2d(nn.Module):
         stride=1,
         padding=0,
         groups=1,
-        bias=True,
+        bias=False,
         weight_bitwidth=4,
         activation_bitwidth=4
     ):
@@ -105,13 +124,11 @@ class QConv2d(nn.Module):
         self.weight_quantizer = LSQQuantizer(
             bitwidth=weight_bitwidth,
             is_activation=False,
-            per_channel=True,
             channels=out_channels
         )
         self.activation_quantizer = LSQQuantizer(
             bitwidth=activation_bitwidth,
-            is_activation=True,
-            per_channel=False
+            is_activation=True
         )
 
     def forward(self, x):

@@ -1,15 +1,15 @@
 import torch
 
 from utils import create_val_loader, test_parser, validate_metrics
-from models import DPSR
+from models import QDPSR
 
 if __name__ == '__main__':
 
     args = test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
-    net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    checkpoint = torch.load("./checkpoints/DPSR_x2_0323_1456.pth", map_location=device, weights_only=False)
+    net = QDPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False, weight_bitwidth=args.w_bits, activation_bitwidth=args.a_bits).to(device)
+    checkpoint = torch.load("./checkpoints/QDPSR_x2_0323_1639.pth", map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
     net.load_state_dict(model_state_dict)
     net.eval()
