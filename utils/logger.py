@@ -63,7 +63,7 @@ class Logger:
         """记录DEBUG级别日志"""
         self.logger.debug(message)
     
-    def log_training_start(self, args, total_params, num_train_batches, num_val_batches):
+    def log_training_start(self, args, total_params, num_train_batches):
         """记录训练开始信息"""
         self.info("=" * 50)
         self.info("Training Started")
@@ -77,7 +77,6 @@ class Logger:
         self.info(f"设备: {args.device}")
         self.info(f"模型参数数量: {total_params:,}")
         self.info(f"训练批次: {num_train_batches}")
-        self.info(f"验证批次: {num_val_batches}")
         self.info("=" * 50)
     
     def log_epoch_train(self, epoch, total_epochs, train_loss, lr):

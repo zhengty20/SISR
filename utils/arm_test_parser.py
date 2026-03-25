@@ -15,6 +15,8 @@ def arm_test_parser():
     parser.add_argument("--arm_patch_size", type=int, default=16, help="ARMSR低分辨率分块边长")
     parser.add_argument("--arm_overlap", type=int, default=4, help="ARMSR低分辨率分块重叠像素")
     parser.add_argument("--arm_threshold", type=float, default=20.0, help="Laplace分流阈值")
+    parser.add_argument("--arm_subnet_channels", type=str, default="0,16,32", help="shared_subnet 通道配置，逗号分隔")
+    parser.add_argument("--arm_subnet_thresholds", type=str, default="", help="分流阈值，数量应为通道数减1，留空则按arm_threshold自动生成")
     parser.add_argument("--val_root", type=str, default="/home/tyzheng/Datasets_pt/val", help="验证集根目录")
     parser.add_argument("--clip_ratio", type=float, default=1.0, help="指标裁剪比例")
     return parser.parse_args()

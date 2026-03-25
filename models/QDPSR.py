@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from .QConv2d import QConv2d
 
 
@@ -70,6 +71,17 @@ class QBlock(nn.Module):
 
         return y
 
+    def forward_shared_channel(self, x, active_channels):
+        c = int(active_channels)
+        y = self.filter1.forward_shared_channel(x, c, c)
+        y = self.projection1.forward_shared_channel(y, c, c)
+        y = F.prelu(y, self.act1.weight[:c])
+
+        y = self.filter2.forward_shared_channel(y, c, c)
+        y = self.projection2.forward_shared_channel(y, c, c)
+        y = F.prelu(y, self.act2.weight[:c]) + x[:, :c]
+        return y
+
     def param_num(self):
 
         total = 0
@@ -104,7 +116,7 @@ class QDPSR(nn.Module):
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=8
         )
 
         self.body = nn.ModuleList()
@@ -118,24 +130,24 @@ class QDPSR(nn.Module):
                 )
             )
 
-        self.tail_filter = QConv2d(
+        self.tail1 = QConv2d(
             fea_dim,
             fea_dim,
             kernel_size=3,
             padding=1,
-            bias=bias,
             groups=fea_dim,
+            bias=bias,
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=activation_bitwidth
         )
-        self.tail_projection = QConv2d(
+        self.tail2 = QConv2d(
             fea_dim,
             in_dim * scale ** 2,
             kernel_size=1,
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=8
         )
         
         self.upsampler = nn.PixelShuffle(scale)
@@ -148,10 +160,22 @@ class QDPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail_filter(y)
-        y = self.tail_projection(y)
+        y = self.tail1(y)
+        y = self.tail2(y)
         y = self.alpha * self.upsampler(y)
 
+        return y
+
+    def forward_shared_channel(self, x, active_channels):
+        c = max(1, min(int(active_channels), self.fea_dim))
+        y = self.head.forward_shared_channel(x, self.head.conv.in_channels, c)
+
+        for i in range(len(self.body)):
+            y = self.body[i].forward_shared_channel(y, c)
+
+        y = self.tail1.forward_shared_channel(y, c, c)
+        y = self.tail2.forward_shared_channel(y, c, self.tail2.conv.out_channels)
+        y = self.alpha * self.upsampler(y)
         return y
 
     def param_num(self):
@@ -160,7 +184,7 @@ class QDPSR(nn.Module):
         total += sum(p.numel() for p in self.head.conv.parameters())
         for i in range(len(self.body)):
             total += self.body[i].param_num()
-        total += sum(p.numel() for p in self.tail_filter.conv.parameters())
-        total += sum(p.numel() for p in self.tail_projection.conv.parameters())
+        total += sum(p.numel() for p in self.tail1.conv.parameters())
+        total += sum(p.numel() for p in self.tail2.conv.parameters())
 
         return total

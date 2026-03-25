@@ -4,7 +4,17 @@ from utils import metrics
 from models import bilinear_interpolation
 import torch.nn.functional as F
 
-def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=None):
+def train_epoch(
+    model,
+    train_loader,
+    loss_func,
+    optimizer,
+    device,
+    epoch,
+    ema=None,
+    enable_shared_channel_train=False,
+    shared_subnet_channels=16
+):
     """训练一个epoch"""
     model.train()
     running_loss = 0.0
@@ -17,6 +27,12 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
         hr_img = (hr_img - bilinear_interpolation(lr_img, model.scale, bit8=True)) / 255.
         sr_img = model(lr_img / 255.)
         loss = loss_func(sr_img, hr_img)
+
+        if enable_shared_channel_train and hasattr(model, "forward_shared_channel"):
+            sr_sub = model.forward_shared_channel(lr_img / 255., shared_subnet_channels)
+            loss_sub = loss_func(sr_sub, hr_img)
+            loss = loss + loss_sub
+
         loss.backward()
         optimizer.step()
 
@@ -74,6 +90,46 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=1.0):
         selected_metrics = metrics_list
     
     # 分别计算选中样本的psnr和ssim平均值
+    psnr_list = [item[0] for item in selected_metrics]
+    ssim_list = [item[1] for item in selected_metrics]
+
+    return {
+        'psnr': sum(psnr_list) / len(psnr_list),
+        'ssim': sum(ssim_list) / len(ssim_list)
+    }
+
+def validate_metrics_shared_channel(model, val_loader, scale, device, active_channels, clip_ratio=1.0):
+    
+    model.eval()
+    metrics_list = []
+
+    if not hasattr(model, "forward_shared_channel"):
+        raise AttributeError("模型不支持 forward_shared_channel")
+
+    with torch.no_grad():
+        vpbar = tqdm(val_loader, desc='metric-validating-shared', leave=False)
+        for lr_img, hr_img in vpbar:
+                
+            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
+            residual = model.forward_shared_channel(lr_img / 255., active_channels)
+            sr_img = (residual * 255. + bilinear_interpolation(lr_img, model.scale, bit8=True)).round().clamp(0, 255)
+            
+            crop_border = scale
+            sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
+            hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
+            
+            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
+            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
+            
+            metrics_list.append((psnr, ssim))
+    
+    if clip_ratio < 1.0:
+        metrics_list.sort(key=lambda x: x[0], reverse=True)
+        selected_count = max(1, int(len(metrics_list) * clip_ratio))
+        selected_metrics = metrics_list[:selected_count]
+    else:
+        selected_metrics = metrics_list
+    
     psnr_list = [item[0] for item in selected_metrics]
     ssim_list = [item[1] for item in selected_metrics]
 
@@ -142,7 +198,8 @@ def transfer_weights(model, qmodel):
 
         # 3. 迁移tail层权重
         print("迁移tail层权重...")
-        _copy_conv(model.tail, qmodel.tail)
+        _copy_conv(model.tail1, qmodel.tail1)
+        _copy_conv(model.tail2, qmodel.tail2)
 
         # 4. 迁移alpha参数
         print("迁移alpha参数...")

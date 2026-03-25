@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class Block(nn.Module):
     def __init__(self, fea_dim, bias = True):
@@ -28,6 +29,43 @@ class Block(nn.Module):
 
         return y
 
+    def forward_shared_channel(self, x, active_channels):
+        c = int(active_channels)
+        y = F.conv2d(
+            x[:, :c],
+            self.filter1.weight[:c],
+            self.filter1.bias[:c] if self.filter1.bias is not None else None,
+            stride=self.filter1.stride,
+            padding=self.filter1.padding,
+            groups=c,
+        )
+        y = F.conv2d(
+            y,
+            self.projection1.weight[:c, :c],
+            self.projection1.bias[:c] if self.projection1.bias is not None else None,
+            stride=self.projection1.stride,
+            padding=self.projection1.padding,
+        )
+        y = F.prelu(y, self.act1.weight[:c])
+
+        y = F.conv2d(
+            y,
+            self.filter2.weight[:c],
+            self.filter2.bias[:c] if self.filter2.bias is not None else None,
+            stride=self.filter2.stride,
+            padding=self.filter2.padding,
+            groups=c,
+        )
+        y = F.conv2d(
+            y,
+            self.projection2.weight[:c, :c],
+            self.projection2.bias[:c] if self.projection2.bias is not None else None,
+            stride=self.projection2.stride,
+            padding=self.projection2.padding,
+        )
+        y = F.prelu(y, self.act2.weight[:c]) + x[:, :c]
+        return y
+
     def param_num(self):
         
         total = 0
@@ -44,14 +82,16 @@ class DPSR(nn.Module):
 
         self.scale = scale
         self.bias = bias
+        self.fea_dim = fea_dim
 
-        self.head = nn.Conv2d(in_dim, fea_dim, kernel_size=3, padding=1, bias=bias)
+        self.head = nn.Conv2d(in_dim, fea_dim, kernel_size=1, padding=0, bias=bias)
 
         self.body = nn.ModuleList()
         for _ in range(num_blocks):
             self.body.append(Block(fea_dim, bias=bias))
 
-        self.tail = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=3, padding=1, bias=bias)
+        self.tail1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=bias, groups=fea_dim)
+        self.tail2 = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=1, padding=0, bias=bias)
 
         self.upsampler = nn.PixelShuffle(scale)
         self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
@@ -63,9 +103,41 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail(y)
+        y = self.tail1(y)
+        y = self.tail2(y)
         y = self.alpha * self.upsampler(y)
 
+        return y
+
+    def forward_shared_channel(self, x, active_channels):
+        c = max(1, min(int(active_channels), self.head.out_channels))
+        y = F.conv2d(
+            x,
+            self.head.weight[:c],
+            self.head.bias[:c] if self.head.bias is not None else None,
+            stride=self.head.stride,
+            padding=self.head.padding,
+        )
+        for i in range(len(self.body)):
+            y = self.body[i].forward_shared_channel(y, c)
+
+        y = F.conv2d(
+            y,
+            self.tail1.weight[:c],
+            self.tail1.bias[:c] if self.tail1.bias is not None else None,
+            stride=self.tail1.stride,
+            padding=self.tail1.padding,
+            groups=c,
+        )
+        y = F.conv2d(
+            y,
+            self.tail2.weight[:, :c],
+            self.tail2.bias,
+            stride=self.tail2.stride,
+            padding=self.tail2.padding,
+        )
+
+        y = self.alpha * self.upsampler(y)
         return y
     
     def param_num(self):
@@ -76,11 +148,12 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             total += self.body[i].param_num()
 
-        total += sum(p.numel() for p in self.tail.parameters())
+        total += sum(p.numel() for p in self.tail1.parameters())
+        total += sum(p.numel() for p in self.tail2.parameters())
 
         return total
 
 if __name__ == '__main__':
     
-    model = DPSR(2, 3, 32, 4, bias=False)
+    model = DPSR(2, 3, 32, 5, bias=False)
     print(f"参数数量: {model.param_num()}")

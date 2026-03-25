@@ -2,7 +2,7 @@ python qtrain.py \
   --model_name "QDPSR" \
   --scale 2 \
   --channel_nums 32 \
-  --num_blocks 6 \
+  --num_blocks 5 \
   --epochs 50 \
   --batch_size 64 \
   --lr 5e-4 \
@@ -12,9 +12,11 @@ python qtrain.py \
   --device "cuda" \
   --in_channels 3 \
   --patch_size 0 \
-  --w_bits 8 \
-  --a_bits 8 \
+  --w_bits 4 \
+  --a_bits 4 \
   --warmup_epochs 5 \
   --ema_decay 0.999 \
   --init_from_fp \
-  --fp_ckpt "./checkpoints/DPSR_x2_0323_1456.pth"
+  --fp_ckpt "./checkpoints/DPSR_x2_0324_1917.pth" \
+  --enable_shared_channel_train \
+  --shared_subnet_channels 16

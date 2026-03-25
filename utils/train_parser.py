@@ -24,5 +24,7 @@ def train_parser():
     parser.add_argument('--warmup_epochs', type=int, default=15, help='warmup轮数')
     parser.add_argument('--ema_decay', type=float, default=0.999, help='EMA衰减系数')
     parser.add_argument('--retrain', type=bool, default=False, help='是否继续训练')
+    parser.add_argument('--enable_shared_channel_train', action='store_true', help='启用shared channel联合训练')
+    parser.add_argument('--shared_subnet_channels', type=int, default=16, help='shared子网通道数')
     
     return parser.parse_args()

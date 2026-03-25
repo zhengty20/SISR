@@ -131,9 +131,29 @@ class QConv2d(nn.Module):
             is_activation=True
         )
 
+    def _quantize_weight_slice(self, weight, active_out_channels):
+        quantizer = self.weight_quantizer
+        if not quantizer.initialized:
+            # Always initialize from full tensor for stable per-channel scales.
+            quantizer._init_from_tensor(self.conv.weight)
+
+        active_out_channels = int(active_out_channels)
+        if active_out_channels <= 0:
+            raise ValueError("active_out_channels 必须大于 0")
+
+        n = weight[0].numel()
+        grad_scale = 1.0 / ((n * quantizer.q_p) ** 0.5)
+        s = quantizer.s[:active_out_channels]
+        s_scaled = ScaleGradient.apply(s, grad_scale)
+        s_safe = torch.clamp(s_scaled, min=quantizer.eps)
+        x_int = weight / s_safe
+        x_int = torch.clamp(x_int, quantizer.q_n, quantizer.q_p)
+        x_int = RoundSTE.apply(x_int)
+        return x_int * s_safe
+
     def forward(self, x):
         quantized_x = self.activation_quantizer(x)
-        quantized_weight = self.weight_quantizer(self.conv.weight)
+        quantized_weight = self._quantize_weight_slice(self.conv.weight, self.conv.out_channels)
         return F.conv2d(
             quantized_x,
             quantized_weight,
@@ -141,4 +161,36 @@ class QConv2d(nn.Module):
             stride=self.conv.stride,
             padding=self.conv.padding,
             groups=self.conv.groups
+        )
+
+    def forward_shared_channel(self, x, active_in_channels, active_out_channels):
+        active_in_channels = int(active_in_channels)
+        active_out_channels = int(active_out_channels)
+
+        if self.conv.groups == 1:
+            x_use = x[:, :active_in_channels]
+            w_use = self.conv.weight[:active_out_channels, :active_in_channels]
+            b_use = self.conv.bias[:active_out_channels] if self.conv.bias is not None else None
+            groups = 1
+            active_out = active_out_channels
+        elif self.conv.groups == self.conv.in_channels and self.conv.in_channels == self.conv.out_channels:
+            # Depthwise convolution: enforce matched active channels.
+            active_c = min(active_in_channels, active_out_channels)
+            x_use = x[:, :active_c]
+            w_use = self.conv.weight[:active_c]
+            b_use = self.conv.bias[:active_c] if self.conv.bias is not None else None
+            groups = active_c
+            active_out = active_c
+        else:
+            raise NotImplementedError("当前仅支持 groups=1 或 depthwise 的 shared_channel 前向")
+
+        quantized_x = self.activation_quantizer(x_use)
+        quantized_weight = self._quantize_weight_slice(w_use, active_out)
+        return F.conv2d(
+            quantized_x,
+            quantized_weight,
+            b_use,
+            stride=self.conv.stride,
+            padding=self.conv.padding,
+            groups=groups
         )

@@ -16,6 +16,7 @@ from utils import (
     train_epoch,
     validate_epoch,
     validate_metrics,
+    validate_metrics_shared_channel,
     basic_metrics,
     create_logger,
     create_train_loader,
@@ -45,16 +46,16 @@ def main():
     )
                                    
     val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale, in_channels=args.in_channels)
-    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
-    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
-    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
-    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
+    # val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
+    # val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
+    # val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
+    # val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
     val_loaders = {
         'Set5': val_loader_set5,
-        'Set14': val_loader_set14,
-        'B100': val_loader_b100,
-        'U100': val_loader_u100,
-        'M109': val_loader_m109,
+        # 'Set14': val_loader_set14,
+        # 'B100': val_loader_b100,
+        # 'U100': val_loader_u100,
+        # 'M109': val_loader_m109,
     }
     
     time_stamp = datetime.now().strftime("%m%d_%H%M")
@@ -112,9 +113,7 @@ def main():
     )
    
     # 记录训练开始信息
-    logger.log_training_start(args, total_params, len(train_loader), 
-                              len(val_loader_set5) + len(val_loader_set14) + len(val_loader_b100) + len(val_loader_u100) + len(val_loader_m109))
-
+    logger.log_training_start(args, total_params, len(train_loader))
 
     # 训练循环
     best_val_loss = 10.0
@@ -123,7 +122,17 @@ def main():
     for epoch in range(args.epochs):
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema)
+        train_loss = train_epoch(
+            model,
+            train_loader,
+            loss_func,
+            optimizer,
+            device,
+            epoch,
+            ema=ema,
+            enable_shared_channel_train=args.enable_shared_channel_train,
+            shared_subnet_channels=args.shared_subnet_channels
+        )
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
@@ -159,6 +168,10 @@ def main():
             for dataset_name, loader in val_loaders.items():
                 val_metrics = validate_metrics(best_candidate, loader, args.scale, device, 1.0)
                 logger.log_validation_results(dataset_name, val_metrics)
+            
+            for dataset_name, loader in val_loaders.items():
+                subnet_metrics = validate_metrics_shared_channel(best_candidate, loader, args.scale, device, args.shared_subnet_channels, 1.0)
+                logger.log_validation_results(f"{dataset_name}-C{args.shared_subnet_channels}", subnet_metrics)
 
         scheduler.step()
     
@@ -181,6 +194,10 @@ def main():
     for dataset_name, loader in val_loaders.items():
         val_metrics = validate_metrics(net, loader, args.scale, device, 1.0)
         logger.log_validation_results(dataset_name, val_metrics)
+    
+    for dataset_name, loader in val_loaders.items():
+        subnet_metrics = validate_metrics_shared_channel(net, loader, args.scale, device, args.shared_subnet_channels, 1.0)
+        logger.log_validation_results(f"{dataset_name}-C{args.shared_subnet_channels}", subnet_metrics)
 
     logger.log_testing_start("Bicubic Interpolation")
 
