@@ -271,7 +271,6 @@ class WarmupCosineScheduler:
         self.warmup_start_lr = warmup_start_lr
         self.current_epoch = 0
         self.base_lrs = [group['lr'] for group in optimizer.param_groups]
-        self.cosine_scheduler = None
 
         if self.total_epochs <= 0:
             raise ValueError("total_epochs must be positive")
@@ -284,15 +283,6 @@ class WarmupCosineScheduler:
             for param_group in self.optimizer.param_groups:
                 param_group['lr'] = self.warmup_start_lr
 
-    def _build_cosine(self):
-        if self.cosine_scheduler is None:
-            cosine_epochs = self.total_epochs - self.warmup_epochs
-            self.cosine_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-                self.optimizer,
-                T_max=cosine_epochs,
-                eta_min=self.eta_min
-            )
-
     def step(self):
         self.current_epoch += 1
 
@@ -302,8 +292,12 @@ class WarmupCosineScheduler:
                 param_group['lr'] = self.warmup_start_lr + (self.base_lrs[i] - self.warmup_start_lr) * progress
             return
 
-        self._build_cosine()
-        self.cosine_scheduler.step()
+        cosine_epochs = self.total_epochs - self.warmup_epochs
+        cosine_step = self.current_epoch - self.warmup_epochs
+        cosine_ratio = min(max(cosine_step / cosine_epochs, 0.0), 1.0)
+        cosine_factor = 0.5 * (1.0 + math.cos(math.pi * cosine_ratio))
+        for i, param_group in enumerate(self.optimizer.param_groups):
+            param_group['lr'] = self.eta_min + (self.base_lrs[i] - self.eta_min) * cosine_factor
 
     def get_lr(self):
         return [group['lr'] for group in self.optimizer.param_groups]
@@ -317,8 +311,6 @@ class WarmupCosineScheduler:
             'warmup_start_lr': self.warmup_start_lr,
             'base_lrs': self.base_lrs,
         }
-        if self.cosine_scheduler is not None:
-            state['cosine_state'] = self.cosine_scheduler.state_dict()
         return state
 
     def load_state_dict(self, state_dict):
@@ -328,7 +320,3 @@ class WarmupCosineScheduler:
         self.eta_min = state_dict['eta_min']
         self.warmup_start_lr = state_dict['warmup_start_lr']
         self.base_lrs = state_dict['base_lrs']
-
-        if 'cosine_state' in state_dict:
-            self._build_cosine()
-            self.cosine_scheduler.load_state_dict(state_dict['cosine_state'])

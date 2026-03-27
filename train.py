@@ -1,6 +1,5 @@
 import os
 import sys
-from pytorch_msssim.ssim import F
 import torch
 import torch.optim as optim
 import copy
@@ -9,10 +8,43 @@ from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 from models import DPSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, basic_metrics, create_logger, \
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics, create_logger, \
 create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _build_model(args, device):
+    return DPSR(
+        scale=args.scale,
+        in_dim=args.in_channels,
+        fea_dim=args.channel_nums,
+        num_blocks=args.num_blocks,
+        bias=False,
+    ).to(device)
+
+
+def _weighted_val_loss(model, val_loaders, loss_func, device):
+    weighted_val_loss = 0.0
+    total_val_samples = 0
+    for loader in val_loaders.values():
+        loader_loss = validate_epoch(model, loader, loss_func, device)
+        sample_count = len(loader.dataset)
+        weighted_val_loss += loader_loss * sample_count
+        total_val_samples += sample_count
+    return weighted_val_loss / total_val_samples
+
+
+def _log_model_metrics(logger, model, val_loaders, args, device):
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = validate_metrics(model, loader, args.scale, device, 1.0)
+        logger.log_validation_results(dataset_name, val_metrics)
+
+    suffix = f"-C{args.shared_subnet_channels}"
+    for dataset_name, loader in val_loaders.items():
+        subnet_metrics = validate_metrics_shared_channel(model, loader, args.scale, device, args.shared_subnet_channels, 1.0)
+        logger.log_validation_results(f"{dataset_name}{suffix}", subnet_metrics)
+
 
 def main():
 
@@ -50,7 +82,7 @@ def main():
     save_dir = Path(args.save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
-    model = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
+    model = _build_model(args, device)
     
     # 统计模型参数量
     total_params = model.param_num()
@@ -71,7 +103,7 @@ def main():
         total_epochs=args.epochs,
         warmup_epochs=args.warmup_epochs,
         eta_min=args.minlr,
-        warmup_start_lr=2e-4
+        warmup_start_lr=3e-4
     )
 
     # 记录训练开始信息
@@ -84,31 +116,15 @@ def main():
     for epoch in range(args.epochs):
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(
-            model,
-            train_loader,
-            loss_func,
-            optimizer,
-            device,
-            epoch,
-            ema=ema,
-            enable_shared_channel_train=args.enable_shared_channel_train,
-            shared_subnet_channels=args.shared_subnet_channels
-        )
+        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema, subnet_channels=args.shared_subnet_channels, \
+            shared_full_epochs=args.shared_full_epochs)
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
 
         best_candidate = None
         with ema.average_parameters():
-            weighted_val_loss = 0.0
-            total_val_samples = 0
-            for loader in val_loaders.values():
-                loader_loss = validate_epoch(model, loader, loss_func, device)
-                sample_count = len(loader.dataset)
-                weighted_val_loss += loader_loss * sample_count
-                total_val_samples += sample_count
-            val_loss = weighted_val_loss / total_val_samples
+            val_loss = _weighted_val_loss(model, val_loaders, loss_func, device)
 
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -126,38 +142,28 @@ def main():
             }, model_path)
             
             logger.log_best_model(val_loss)
-
-            for dataset_name, loader in val_loaders.items():
-                val_metrics = validate_metrics(best_candidate, loader, args.scale, device, 1.0)
-                logger.log_validation_results(dataset_name, val_metrics)
-            
-            for dataset_name, loader in val_loaders.items():
-                subnet_metrics = validate_metrics_shared_channel(best_candidate, loader, args.scale, device, args.shared_subnet_channels, 1.0)
-                logger.log_validation_results(f"{dataset_name}-C{args.shared_subnet_channels}", subnet_metrics)
+            _log_model_metrics(logger, best_candidate, val_loaders, args, device)
 
         scheduler.step()
     
     logger.log_training_finished()
 
     logger.log_testing_start("Best Model")
-    net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
+    net = _build_model(args, device)
     state_dict = torch.load(model_path, map_location=device, weights_only=False)
     
     net.load_state_dict(state_dict['model_state_dict'])
     net.eval()
-
-    for dataset_name, loader in val_loaders.items():
-        val_metrics = validate_metrics(net, loader, args.scale, device, 1.0)
-        logger.log_validation_results(dataset_name, val_metrics)
-    
-    for dataset_name, loader in val_loaders.items():
-        subnet_metrics = validate_metrics_shared_channel(net, loader, args.scale, device, args.shared_subnet_channels, 1.0)
-        logger.log_validation_results(f"{dataset_name}-C{args.shared_subnet_channels}", subnet_metrics)
+    _log_model_metrics(logger, net, val_loaders, args, device)
 
     logger.log_testing_start("Bicubic Interpolation")
-
     for dataset_name, loader in val_loaders.items():
-        val_metrics = basic_metrics(loader, args.scale, device)
+        val_metrics = bicubic_metrics(loader, args.scale, device)
+        logger.log_validation_results(dataset_name, val_metrics)
+
+    logger.log_testing_start("Bilinear Interpolation")
+    for dataset_name, loader in val_loaders.items():
+        val_metrics = bilinear_metrics(loader, args.scale, device)
         logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger

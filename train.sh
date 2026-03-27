@@ -5,14 +5,14 @@ python train.py \
   --num_blocks 5 \
   --epochs 150 \
   --batch_size 64 \
-  --lr 2e-3 \
-  --minlr 2e-5 \
+  --lr 1.5e-3 \
+  --minlr 5e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
-  --patch_size 0 \
+  --patch_size 48 \
   --warmup_epochs 15 \
   --ema_decay 0.999 \
-  --enable_shared_channel_train \
-  --shared_subnet_channels 16
+  --shared_subnet_channels 16 \
+  --shared_full_epochs 5

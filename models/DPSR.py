@@ -14,18 +14,17 @@ class Block(nn.Module):
         self.filter1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=self.bias, groups=fea_dim)
         self.filter2 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=self.bias, groups=fea_dim)
 
-        self.act1 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
-        self.act2 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
+        self.act = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
+        self.scale = nn.Parameter(torch.ones(1, fea_dim, 1, 1))
 
     def forward(self, x):
-
         y = self.filter1(x)
         y = self.projection1(y)   
-        y = self.act1(y)
+        y = self.act(y)
         
         y = self.filter2(y)
         y = self.projection2(y)
-        y = self.act2(y) + x
+        y = y * self.scale + x
 
         return y
 
@@ -46,8 +45,7 @@ class Block(nn.Module):
             stride=self.projection1.stride,
             padding=self.projection1.padding,
         )
-        y = F.prelu(y, self.act1.weight[:c])
-
+        y = F.prelu(y, self.act.weight[:c])
         y = F.conv2d(
             y,
             self.filter2.weight[:c],
@@ -63,7 +61,7 @@ class Block(nn.Module):
             stride=self.projection2.stride,
             padding=self.projection2.padding,
         )
-        y = F.prelu(y, self.act2.weight[:c]) + x[:, :c]
+        y = y * self.scale[:, :c] + x[:, :c]
         return y
 
     def param_num(self):
@@ -77,7 +75,7 @@ class Block(nn.Module):
         return total
 
 class DPSR(nn.Module):
-    def __init__(self, scale, in_dim, fea_dim, num_blocks=2, bias=True):
+    def __init__(self, scale, in_dim, fea_dim, num_blocks=5, bias=True):
         super(DPSR, self).__init__()
 
         self.scale = scale

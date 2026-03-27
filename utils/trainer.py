@@ -4,35 +4,74 @@ from utils import metrics
 from models import bilinear_interpolation
 import torch.nn.functional as F
 
-def train_epoch(
-    model,
-    train_loader,
-    loss_func,
-    optimizer,
-    device,
-    epoch,
-    ema=None,
-    enable_shared_channel_train=False,
-    shared_subnet_channels=16
-):
+
+def _build_residual_target(hr_img, lr_img, scale):
+    base = F.interpolate(lr_img, scale_factor=scale, mode='bilinear', align_corners=False).round().clamp(0, 255)
+    return (hr_img - base) / 255.0
+
+
+def _crop_pair(sr_img, hr_img, scale):
+    crop_border = int(scale)
+    if crop_border <= 0:
+        return sr_img, hr_img
+    return (
+        sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border],
+        hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border],
+    )
+
+
+def _finalize_metrics(metrics_list, clip_ratio):
+    if clip_ratio < 1.0:
+        metrics_list.sort(key=lambda x: x[0], reverse=True)
+        selected_count = max(1, int(len(metrics_list) * clip_ratio))
+        metrics_list = metrics_list[:selected_count]
+
+    psnr_list = [item[0] for item in metrics_list]
+    ssim_list = [item[1] for item in metrics_list]
+    return {
+        'psnr': sum(psnr_list) / len(psnr_list),
+        'ssim': sum(ssim_list) / len(ssim_list)
+    }
+
+
+def _evaluate_metrics_loop(val_loader, device, sr_builder, scale, clip_ratio, desc):
+    metrics_list = []
+    with torch.no_grad():
+        vpbar = tqdm(val_loader, desc=desc, leave=False)
+        for lr_img, hr_img in vpbar:
+            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
+            sr_img = sr_builder(lr_img).round().clamp(0, 255)
+            sr_img, hr_img = _crop_pair(sr_img, hr_img, scale)
+            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
+            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
+            metrics_list.append((psnr, ssim))
+    return _finalize_metrics(metrics_list, clip_ratio)
+
+def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=None, subnet_channels=16, shared_full_epochs=5):
     """训练一个epoch"""
     model.train()
     running_loss = 0.0
 
     pbar = tqdm(train_loader, desc=f'Epoch {epoch + 1}', leave=False)
-    for lr_img, hr_img in pbar:
+    for step, (lr_img, hr_img) in enumerate(pbar):
        
         lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
         optimizer.zero_grad(set_to_none=True)
-        hr_img = (hr_img - bilinear_interpolation(lr_img, model.scale, bit8=True)) / 255.
+        hr_img = _build_residual_target(hr_img, lr_img, model.scale)
         sr_img = model(lr_img / 255.)
-        loss = loss_func(sr_img, hr_img)
+        loss_full = loss_func(sr_img, hr_img)
+        loss = loss_full
 
-        if enable_shared_channel_train and hasattr(model, "forward_shared_channel"):
-            sr_sub = model.forward_shared_channel(lr_img / 255., shared_subnet_channels)
+        if epoch < shared_full_epochs:
+            loss = loss_full
+        else:
+            sr_sub = model.forward_shared_channel(lr_img / 255., subnet_channels)
             loss_sub = loss_func(sr_sub, hr_img)
-            loss = loss + loss_sub
-
+            if step % 2 == 0:
+                loss = loss_full
+            else:
+                loss = loss_sub
+        
         loss.backward()
         optimizer.step()
 
@@ -53,7 +92,7 @@ def validate_epoch(model, val_loader, loss_func, device):
         for lr_img, hr_img in vpbar:
                 
             lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            hr_img = (hr_img - bilinear_interpolation(lr_img, model.scale, bit8=True)) / 255.
+            hr_img = _build_residual_target(hr_img, lr_img, model.scale)
             sr_img = model(lr_img / 255.) 
             loss = loss_func(sr_img, hr_img)
             val_loss += loss.item()
@@ -61,148 +100,61 @@ def validate_epoch(model, val_loader, loss_func, device):
     return val_loss / len(val_loader)
 
 def validate_metrics(model, val_loader, scale, device, clip_ratio=1.0):
-    
     model.eval()
-    # 存储(psnr, ssim)对
-    metrics_list = []
-
-    with torch.no_grad():
-        vpbar = tqdm(val_loader, desc='metric-validating', leave=False)
-        for lr_img, hr_img in vpbar:
-                
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            sr_img = (model(lr_img / 255.) * 255. + bilinear_interpolation(lr_img, model.scale, bit8=True)).round().clamp(0, 255)
-            
-            crop_border = scale
-            sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            
-            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
-            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
-            
-            metrics_list.append((psnr, ssim))
-    
-    if clip_ratio < 1.0:
-        metrics_list.sort(key=lambda x: x[0], reverse=True)
-        selected_count = max(1, int(len(metrics_list) * clip_ratio))
-        selected_metrics = metrics_list[:selected_count]
-    else:
-        selected_metrics = metrics_list
-    
-    # 分别计算选中样本的psnr和ssim平均值
-    psnr_list = [item[0] for item in selected_metrics]
-    ssim_list = [item[1] for item in selected_metrics]
-
-    return {
-        'psnr': sum(psnr_list) / len(psnr_list),
-        'ssim': sum(ssim_list) / len(ssim_list)
-    }
+    return _evaluate_metrics_loop(
+        val_loader=val_loader,
+        device=device,
+        scale=scale,
+        clip_ratio=clip_ratio,
+        desc='metric-validating',
+        sr_builder=lambda lr_img: (
+            model(lr_img / 255.) * 255.
+            + F.interpolate(lr_img, scale_factor=model.scale, mode='bilinear', align_corners=False)
+        ),
+    )
 
 def validate_metrics_shared_channel(model, val_loader, scale, device, active_channels, clip_ratio=1.0):
-    
     model.eval()
-    metrics_list = []
-
     if not hasattr(model, "forward_shared_channel"):
         raise AttributeError("模型不支持 forward_shared_channel")
+    return _evaluate_metrics_loop(
+        val_loader=val_loader,
+        device=device,
+        scale=scale,
+        clip_ratio=clip_ratio,
+        desc='metric-validating-shared',
+        sr_builder=lambda lr_img: (
+            model.forward_shared_channel(lr_img / 255., active_channels) * 255.
+            + bilinear_interpolation(lr_img, model.scale, bit8=True)
+        ),
+    )
 
-    with torch.no_grad():
-        vpbar = tqdm(val_loader, desc='metric-validating-shared', leave=False)
-        for lr_img, hr_img in vpbar:
-                
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            residual = model.forward_shared_channel(lr_img / 255., active_channels)
-            sr_img = (residual * 255. + bilinear_interpolation(lr_img, model.scale, bit8=True)).round().clamp(0, 255)
-            
-            crop_border = scale
-            sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            
-            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
-            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
-            
-            metrics_list.append((psnr, ssim))
-    
-    if clip_ratio < 1.0:
-        metrics_list.sort(key=lambda x: x[0], reverse=True)
-        selected_count = max(1, int(len(metrics_list) * clip_ratio))
-        selected_metrics = metrics_list[:selected_count]
-    else:
-        selected_metrics = metrics_list
-    
-    psnr_list = [item[0] for item in selected_metrics]
-    ssim_list = [item[1] for item in selected_metrics]
+def bicubic_metrics(val_loader, scale, device):  
+    return _evaluate_metrics_loop(
+        val_loader=val_loader,
+        device=device,
+        scale=scale,
+        clip_ratio=1.0,
+        desc='basic-metrics-validating',
+        sr_builder=lambda lr_img: F.interpolate(
+            lr_img,
+            scale_factor=scale,
+            mode='bicubic',
+            align_corners=False,
+        ),
+    )
 
-    return {
-        'psnr': sum(psnr_list) / len(psnr_list),
-        'ssim': sum(ssim_list) / len(ssim_list)
-    }
-
-def basic_metrics(val_loader, scale, device):
-    
-    # 存储(psnr, ssim)对
-    metrics_list = []
-
-    with torch.no_grad():
-        vpbar = tqdm(val_loader, desc='basic-metrics-validating', leave=False)
-        for lr_img, hr_img in vpbar:
-                
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
-            sr_img = F.interpolate(lr_img, scale_factor=scale, mode='bicubic', align_corners=False)
-
-            crop_border = scale
-            sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-            
-            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
-            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
-            
-            metrics_list.append((psnr, ssim))
-    
-    # 分别计算psnr和ssim平均值
-    psnr_list = [item[0] for item in metrics_list]
-    ssim_list = [item[1] for item in metrics_list]
-
-    return {
-        'psnr': sum(psnr_list) / len(psnr_list),
-        'ssim': sum(ssim_list) / len(ssim_list)
-    }
-
-def transfer_weights(model, qmodel):
-    # 检查模型结构是否兼容
-    if len(model.body) != len(qmodel.body):
-        raise ValueError(f"模型body层数不匹配: DPSR({len(model.body)}) vs QDPSR({len(qmodel.body)})")
-
-    def _copy_conv(src_conv, dst_qconv):
-        dst_qconv.conv.weight.data.copy_(src_conv.weight.data)
-        if src_conv.bias is not None and dst_qconv.conv.bias is not None:
-            dst_qconv.conv.bias.data.copy_(src_conv.bias.data)
-
-    with torch.no_grad():
-        # 1. 迁移head层权重
-        print("迁移head层权重...")
-        _copy_conv(model.head, qmodel.head)
-
-        # 2. 迁移body层权重
-        print("迁移body层权重...")
-        for i in range(len(model.body)):
-            print(f"  迁移第{i + 1}个Block...")
-            _copy_conv(model.body[i].projection1, qmodel.body[i].projection1)
-            _copy_conv(model.body[i].filter1, qmodel.body[i].filter1)
-            _copy_conv(model.body[i].projection2, qmodel.body[i].projection2)
-            _copy_conv(model.body[i].filter2, qmodel.body[i].filter2)
-
-            # 迁移PReLU参数
-            qmodel.body[i].act1.weight.data.copy_(model.body[i].act1.weight.data)
-            qmodel.body[i].act2.weight.data.copy_(model.body[i].act2.weight.data)
-
-        # 3. 迁移tail层权重
-        print("迁移tail层权重...")
-        _copy_conv(model.tail1, qmodel.tail1)
-        _copy_conv(model.tail2, qmodel.tail2)
-
-        # 4. 迁移alpha参数
-        print("迁移alpha参数...")
-        qmodel.alpha.data.copy_(model.alpha.data)
-
-    print("权重迁移完成!")
+def bilinear_metrics(val_loader, scale, device):
+    return _evaluate_metrics_loop(
+        val_loader=val_loader,
+        device=device,
+        scale=scale,
+        clip_ratio=1.0,
+        desc='basic-metrics-validating',
+        sr_builder=lambda lr_img: F.interpolate(
+            lr_img,
+            scale_factor=scale,
+            mode='bilinear',
+            align_corners=False,
+        ),
+    )

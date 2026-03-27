@@ -1,73 +1,93 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .QConv2d import QConv2d
+import inspect
+from .QConv2d_RLQ import QConv2dRLQ
+from .QConv2d_PACT_SAWB import QConv2dPACTSAWB
+from .QConv2d_LSQP import QConv2dLSQP
+
+
+def _build_qconv(qconv_cls, **kwargs):
+    sig = inspect.signature(qconv_cls.__init__)
+    valid = {k: v for k, v in kwargs.items() if k in sig.parameters}
+    return qconv_cls(**valid)
 
 
 class QBlock(nn.Module):
-
     def __init__(
         self,
         fea_dim,
         bias=False,
         weight_bitwidth=4,
-        activation_bitwidth=8
+        activation_bitwidth=4,
+        qconv_cls=QConv2dRLQ,
+        qconv_kwargs=None,
     ):
         super(QBlock, self).__init__()
 
         self.bias = bias
         self.fea_dim = fea_dim
+        self.qconv_cls = qconv_cls
+        self.qconv_kwargs = qconv_kwargs or {}
 
-        self.projection1 = QConv2d(
-            fea_dim,
-            fea_dim,
+        self.projection1 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=fea_dim,
             kernel_size=1,
             padding=0,
             bias=self.bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=activation_bitwidth,
+            **self.qconv_kwargs,
         )
-        self.projection2 = QConv2d(
-            fea_dim,
-            fea_dim,
+        self.projection2 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=fea_dim,
             kernel_size=1,
             padding=0,
             bias=self.bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=activation_bitwidth,
+            **self.qconv_kwargs,
         )
-        self.filter1 = QConv2d(
-            fea_dim,
-            fea_dim,
+        self.filter1 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=fea_dim,
             kernel_size=3,
             padding=1,
             bias=self.bias,
             groups=fea_dim,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=activation_bitwidth,
+            **self.qconv_kwargs,
         )
-        self.filter2 = QConv2d(
-            fea_dim,
-            fea_dim,
+        self.filter2 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=fea_dim,
             kernel_size=3,
             padding=1,
             bias=self.bias,
             groups=fea_dim,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=activation_bitwidth,
+            **self.qconv_kwargs,
         )
-        self.act1 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
-        self.act2 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
+        self.act = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
+        self.scale = nn.Parameter(torch.ones(1, fea_dim, 1, 1))
 
     def forward(self, x):
 
         y = self.filter1(x)
         y = self.projection1(y)
-        y = self.act1(y)
+        y = self.act(y)
 
         y = self.filter2(y)
         y = self.projection2(y)
-        y = self.act2(y) + x
+        y = y * self.scale + x
 
         return y
 
@@ -75,11 +95,11 @@ class QBlock(nn.Module):
         c = int(active_channels)
         y = self.filter1.forward_shared_channel(x, c, c)
         y = self.projection1.forward_shared_channel(y, c, c)
-        y = F.prelu(y, self.act1.weight[:c])
+        y = F.prelu(y, self.act.weight[:c])
 
         y = self.filter2.forward_shared_channel(y, c, c)
         y = self.projection2.forward_shared_channel(y, c, c)
-        y = F.prelu(y, self.act2.weight[:c]) + x[:, :c]
+        y = y * self.scale[:, :c] + x[:, :c]
         return y
 
     def param_num(self):
@@ -93,7 +113,6 @@ class QBlock(nn.Module):
         return total
 
 class QDPSR(nn.Module):
-
     def __init__(
         self,
         scale,
@@ -102,21 +121,29 @@ class QDPSR(nn.Module):
         num_blocks=5,
         bias=False,
         weight_bitwidth=4,
-        activation_bitwidth=4
+        activation_bitwidth=4,
+        head_tail_activation_bitwidth=8,
+        qconv_cls=QConv2dRLQ,
+        qconv_kwargs=None,
     ):
         super(QDPSR, self).__init__()
 
         self.scale = scale
         self.bias = bias
         self.fea_dim = fea_dim
-        self.head = QConv2d(
-            in_dim,
-            fea_dim,
+        self.qconv_cls = qconv_cls
+        self.qconv_kwargs = qconv_kwargs or {}
+
+        self.head = _build_qconv(
+            self.qconv_cls,
+            in_channels=in_dim,
+            out_channels=fea_dim,
             kernel_size=1,
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8
+            activation_bitwidth=head_tail_activation_bitwidth,
+            **self.qconv_kwargs,
         )
 
         self.body = nn.ModuleList()
@@ -126,28 +153,34 @@ class QDPSR(nn.Module):
                     fea_dim,
                     bias=bias,
                     weight_bitwidth=weight_bitwidth,
-                    activation_bitwidth=activation_bitwidth
+                    activation_bitwidth=activation_bitwidth,
+                    qconv_cls=self.qconv_cls,
+                    qconv_kwargs=self.qconv_kwargs,
                 )
             )
 
-        self.tail1 = QConv2d(
-            fea_dim,
-            fea_dim,
+        self.tail1 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=fea_dim,
             kernel_size=3,
             padding=1,
             groups=fea_dim,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=activation_bitwidth
+            activation_bitwidth=head_tail_activation_bitwidth,
+            **self.qconv_kwargs,
         )
-        self.tail2 = QConv2d(
-            fea_dim,
-            in_dim * scale ** 2,
+        self.tail2 = _build_qconv(
+            self.qconv_cls,
+            in_channels=fea_dim,
+            out_channels=in_dim * scale ** 2,
             kernel_size=1,
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8
+            activation_bitwidth=head_tail_activation_bitwidth,
+            **self.qconv_kwargs,
         )
         
         self.upsampler = nn.PixelShuffle(scale)
@@ -188,3 +221,40 @@ class QDPSR(nn.Module):
         total += sum(p.numel() for p in self.tail2.conv.parameters())
 
         return total
+
+def build_qdpsr(
+    scale,
+    in_dim,
+    fea_dim,
+    num_blocks=5,
+    bias=False,
+    weight_bitwidth=4,
+    activation_bitwidth=4,
+    head_tail_activation_bitwidth=8,
+    quant_method="rlq",
+):
+    quant_method = str(quant_method).lower()
+    if quant_method == "rlq":
+        qconv_cls = QConv2dRLQ
+        qconv_kwargs = {}
+    elif quant_method == "pact_sawb":
+        qconv_cls = QConv2dPACTSAWB
+        qconv_kwargs = {}
+    elif quant_method == "lsq_plus":
+        qconv_cls = QConv2dLSQP
+        qconv_kwargs = {}
+    else:
+        raise ValueError(f"不支持的 quant_method: {quant_method}")
+
+    return QDPSR(
+        scale=scale,
+        in_dim=in_dim,
+        fea_dim=fea_dim,
+        num_blocks=num_blocks,
+        bias=bias,
+        weight_bitwidth=weight_bitwidth,
+        activation_bitwidth=activation_bitwidth,
+        head_tail_activation_bitwidth=head_tail_activation_bitwidth,
+        qconv_cls=qconv_cls,
+        qconv_kwargs=qconv_kwargs,
+    )

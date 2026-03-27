@@ -3,20 +3,19 @@ python qtrain.py \
   --scale 2 \
   --channel_nums 32 \
   --num_blocks 5 \
-  --epochs 50 \
+  --epochs 150 \
   --batch_size 64 \
-  --lr 5e-4 \
-  --minlr 1e-5 \
+  --lr 1.5e-3 \
+  --minlr 5e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
-  --patch_size 0 \
+  --patch_size 48 \
   --w_bits 4 \
   --a_bits 4 \
-  --warmup_epochs 5 \
+  --quant_method "lsq_plus" \
+  --warmup_epochs 15 \
   --ema_decay 0.999 \
-  --init_from_fp \
-  --fp_ckpt "./checkpoints/DPSR_x2_0324_1917.pth" \
-  --enable_shared_channel_train \
-  --shared_subnet_channels 16
+  --shared_subnet_channels 16 \
+  --shared_full_epochs 5

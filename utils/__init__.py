@@ -1,8 +1,8 @@
 from .train_parser import train_parser
 from .test_parser import test_parser
 from .arm_test_parser import arm_test_parser
-from .trainer import train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, transfer_weights, basic_metrics
-from .metrics import MixedLoss, PSNRLoss
+from .trainer import train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics
+from .metrics import MixedLoss
 from .dataloader import create_train_loader, create_val_loader
 from .logger import Logger, create_logger
 from .schedulers import WarmupCosineScheduler
@@ -15,14 +15,12 @@ __all__ = [
     'validate_epoch',
     'validate_metrics',
     'validate_metrics_shared_channel',
-    'transfer_weights',
-    'basic_metrics',
+    'bicubic_metrics',
+    'bilinear_metrics',
     'create_train_loader',
     'create_val_loader',
     'MixedLoss',
-    'PSNRLoss',
     'Logger',
     'create_logger',
     'WarmupCosineScheduler'
-
 ]
