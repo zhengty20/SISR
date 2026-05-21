@@ -122,7 +122,6 @@ class QDPSR(nn.Module):
         bias=False,
         weight_bitwidth=4,
         activation_bitwidth=4,
-        head_tail_activation_bitwidth=8,
         qconv_cls=QConv2dRLQ,
         qconv_kwargs=None,
     ):
@@ -142,7 +141,7 @@ class QDPSR(nn.Module):
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=head_tail_activation_bitwidth,
+            activation_bitwidth=8,
             **self.qconv_kwargs,
         )
 
@@ -168,7 +167,7 @@ class QDPSR(nn.Module):
             groups=fea_dim,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=head_tail_activation_bitwidth,
+            activation_bitwidth=8,
             **self.qconv_kwargs,
         )
         self.tail2 = _build_qconv(
@@ -179,7 +178,7 @@ class QDPSR(nn.Module):
             padding=0,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=head_tail_activation_bitwidth,
+            activation_bitwidth=8,
             **self.qconv_kwargs,
         )
         
@@ -230,7 +229,6 @@ def build_qdpsr(
     bias=False,
     weight_bitwidth=4,
     activation_bitwidth=4,
-    head_tail_activation_bitwidth=8,
     quant_method="rlq",
 ):
     quant_method = str(quant_method).lower()
@@ -254,7 +252,6 @@ def build_qdpsr(
         bias=bias,
         weight_bitwidth=weight_bitwidth,
         activation_bitwidth=activation_bitwidth,
-        head_tail_activation_bitwidth=head_tail_activation_bitwidth,
         qconv_cls=qconv_cls,
         qconv_kwargs=qconv_kwargs,
     )

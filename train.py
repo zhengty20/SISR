@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from torch_ema import ExponentialMovingAverage
 from models import DPSR
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics, create_logger, \
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, create_logger, \
 create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -65,16 +65,16 @@ def main():
     )
                                    
     val_loader_set5 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', args.scale, in_channels=args.in_channels)
-    # val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
-    # val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
-    # val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
-    # val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
+    val_loader_set14 = create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', args.scale, in_channels=args.in_channels)
+    val_loader_b100 = create_val_loader('/home/tyzheng/Datasets_pt/val/B100', args.scale, in_channels=args.in_channels)
+    val_loader_u100 = create_val_loader('/home/tyzheng/Datasets_pt/val/U100', args.scale, in_channels=args.in_channels)
+    val_loader_m109 = create_val_loader('/home/tyzheng/Datasets_pt/val/M109', args.scale, in_channels=args.in_channels)
     val_loaders = {
         'Set5': val_loader_set5,
-        # 'Set14': val_loader_set14,
-        # 'B100': val_loader_b100,
-        # 'U100': val_loader_u100,
-        # 'M109': val_loader_m109,
+        'Set14': val_loader_set14,
+        'B100': val_loader_b100,
+        'U100': val_loader_u100,
+        'M109': val_loader_m109,
     }
     
     time_stamp = datetime.now().strftime("%m%d_%H%M")
@@ -116,8 +116,7 @@ def main():
     for epoch in range(args.epochs):
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema, subnet_channels=args.shared_subnet_channels, \
-            shared_full_epochs=args.shared_full_epochs)
+        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema, subnet_channels=args.shared_subnet_channels, shared_full_epochs=args.shared_full_epochs)
         current_lr = optimizer.param_groups[0]['lr']
         
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
@@ -159,11 +158,6 @@ def main():
     logger.log_testing_start("Bicubic Interpolation")
     for dataset_name, loader in val_loaders.items():
         val_metrics = bicubic_metrics(loader, args.scale, device)
-        logger.log_validation_results(dataset_name, val_metrics)
-
-    logger.log_testing_start("Bilinear Interpolation")
-    for dataset_name, loader in val_loaders.items():
-        val_metrics = bilinear_metrics(loader, args.scale, device)
         logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger

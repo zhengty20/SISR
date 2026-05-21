@@ -37,7 +37,7 @@ if __name__ == '__main__':
         quant_method=args.quant_method,
     ).to(device)
     net.head.set_input_quantization(False)
-    checkpoint = torch.load("./checkpoints/QDPSR_x2_0327_0131.pth", map_location=device, weights_only=False)
+    checkpoint = torch.load("./checkpoints/QDPSR_x2_0327_1659.pth", map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
     net.load_state_dict(model_state_dict)
     net.eval()

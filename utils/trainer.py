@@ -125,7 +125,7 @@ def validate_metrics_shared_channel(model, val_loader, scale, device, active_cha
         desc='metric-validating-shared',
         sr_builder=lambda lr_img: (
             model.forward_shared_channel(lr_img / 255., active_channels) * 255.
-            + bilinear_interpolation(lr_img, model.scale, bit8=True)
+            + F.interpolate(lr_img, scale_factor=model.scale, mode='bilinear', align_corners=False)
         ),
     )
 
@@ -140,21 +140,6 @@ def bicubic_metrics(val_loader, scale, device):
             lr_img,
             scale_factor=scale,
             mode='bicubic',
-            align_corners=False,
-        ),
-    )
-
-def bilinear_metrics(val_loader, scale, device):
-    return _evaluate_metrics_loop(
-        val_loader=val_loader,
-        device=device,
-        scale=scale,
-        clip_ratio=1.0,
-        desc='basic-metrics-validating',
-        sr_builder=lambda lr_img: F.interpolate(
-            lr_img,
-            scale_factor=scale,
-            mode='bilinear',
             align_corners=False,
         ),
     )

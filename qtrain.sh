@@ -1,12 +1,12 @@
 python qtrain.py \
   --model_name "QDPSR" \
   --scale 2 \
-  --channel_nums 32 \
+  --channel_nums 36 \
   --num_blocks 5 \
   --epochs 150 \
   --batch_size 64 \
-  --lr 1.5e-3 \
-  --minlr 5e-5 \
+  --lr 1.2e-3 \
+  --minlr 4e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
@@ -17,5 +17,5 @@ python qtrain.py \
   --quant_method "lsq_plus" \
   --warmup_epochs 15 \
   --ema_decay 0.999 \
-  --shared_subnet_channels 16 \
-  --shared_full_epochs 5
+  --shared_subnet_channels 18 \
+  --shared_full_epochs 8

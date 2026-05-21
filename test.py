@@ -27,7 +27,7 @@ if __name__ == '__main__':
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
     net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    checkpoint = torch.load("./checkpoints/DPSR_x2_0326_2257.pth", map_location=device, weights_only=False)
+    checkpoint = torch.load("./checkpoints/DPSR_x2_0327_1645.pth", map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
     net.load_state_dict(model_state_dict)
     net.eval()

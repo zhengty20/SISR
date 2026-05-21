@@ -10,7 +10,7 @@ from torch_ema import ExponentialMovingAverage
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import build_qdpsr
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics, \
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, \
 create_logger, create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 
@@ -164,11 +164,6 @@ def main():
     logger.log_testing_start("Bicubic Interpolation")
     for dataset_name, loader in val_loaders.items():
         val_metrics = bicubic_metrics(loader, args.scale, device)
-        logger.log_validation_results(dataset_name, val_metrics)
-    
-    logger.log_testing_start("Bilinear Interpolation")
-    for dataset_name, loader in val_loaders.items():
-        val_metrics = bilinear_metrics(loader, args.scale, device)
         logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger

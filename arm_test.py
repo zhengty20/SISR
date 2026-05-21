@@ -32,6 +32,8 @@ class ARMSRFrame:
         self.laplace_kernel = lap.view(1, 1, 3, 3)
         self.subnet_channels = self._build_subnet_channels(subnet_channels)
         self.subnet_thresholds = self._build_subnet_thresholds(subnet_thresholds)
+        self.bilinear_threshold = self.subnet_thresholds[0]
+        self.subnet_threshold = self.subnet_thresholds[1]
 
     def _build_subnet_channels(self, subnet_channels):
         max_channels = int(getattr(self.residual_model, "fea_dim", 32))
@@ -39,28 +41,38 @@ class ARMSRFrame:
             subnet_channels = [0, 16, max_channels]
         cleaned = sorted(set(max(0, min(int(c), max_channels)) for c in subnet_channels))
         if not cleaned:
-            cleaned = [0, max_channels]
-        if cleaned[-1] != max_channels:
+            cleaned = [0, 16, max_channels]
+        if 0 not in cleaned:
+            cleaned.insert(0, 0)
+        if len(cleaned) < 3:
+            mid = max(1, max_channels // 2)
+            if mid not in cleaned:
+                cleaned.append(mid)
+        if max_channels not in cleaned:
             cleaned.append(max_channels)
+        cleaned = sorted(set(cleaned))
+        if len(cleaned) < 3:
+            raise ValueError("arm_subnet_channels 至少需要三个通道档位: bilinear/subnet/net")
         return cleaned
 
     def _build_subnet_thresholds(self, subnet_thresholds):
         if subnet_thresholds is None:
-            if len(self.subnet_channels) <= 2:
-                return [self.threshold]
-            step = self.threshold / (len(self.subnet_channels) - 1)
-            return [step * (i + 1) for i in range(len(self.subnet_channels) - 1)]
+            return [self.threshold, self.threshold * 2.0]
 
         cleaned = sorted([float(v) for v in subnet_thresholds])
-        expected = len(self.subnet_channels) - 1
+        expected = 2
         if len(cleaned) != expected:
             raise ValueError(f"arm_subnet_thresholds 数量应为 {expected}，当前为 {len(cleaned)}")
+        if cleaned[0] >= cleaned[1]:
+            raise ValueError("arm_subnet_thresholds 需满足 t_bilinear < t_subnet")
         return cleaned
 
     def _select_channels(self, score):
-        for idx, th in enumerate(self.subnet_thresholds):
-            if score < th:
-                return self.subnet_channels[idx]
+        # 三段式分支: bilinear / bilinear+subnet / bilinear+net
+        if score < self.bilinear_threshold:
+            return 0
+        if score < self.subnet_threshold:
+            return self.subnet_channels[1]
         return self.subnet_channels[-1]
 
     def _infer_residual(self, lr_patch, active_channels):

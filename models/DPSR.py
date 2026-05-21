@@ -19,7 +19,7 @@ class Block(nn.Module):
 
     def forward(self, x):
         y = self.filter1(x)
-        y = self.projection1(y)   
+        y = self.projection1(y)
         y = self.act(y)
         
         y = self.filter2(y)
@@ -82,14 +82,13 @@ class DPSR(nn.Module):
         self.bias = bias
         self.fea_dim = fea_dim
 
-        self.head = nn.Conv2d(in_dim, fea_dim, kernel_size=1, padding=0, bias=bias)
+        self.head = nn.Conv2d(in_dim, fea_dim, kernel_size=3, padding=1, bias=bias)
 
         self.body = nn.ModuleList()
         for _ in range(num_blocks):
             self.body.append(Block(fea_dim, bias=bias))
 
-        self.tail1 = nn.Conv2d(fea_dim, fea_dim, kernel_size=3, padding=1, bias=bias, groups=fea_dim)
-        self.tail2 = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=1, padding=0, bias=bias)
+        self.tail = nn.Conv2d(fea_dim, in_dim * scale ** 2, kernel_size=3, padding=1, bias=bias)
 
         self.upsampler = nn.PixelShuffle(scale)
         self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
@@ -101,8 +100,7 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail1(y)
-        y = self.tail2(y)
+        y = self.tail(y)
         y = self.alpha * self.upsampler(y)
 
         return y
@@ -121,20 +119,11 @@ class DPSR(nn.Module):
 
         y = F.conv2d(
             y,
-            self.tail1.weight[:c],
-            self.tail1.bias[:c] if self.tail1.bias is not None else None,
-            stride=self.tail1.stride,
-            padding=self.tail1.padding,
-            groups=c,
+            self.tail.weight[:,:c],
+            self.tail.bias if self.tail.bias is not None else None,
+            stride=self.tail.stride,
+            padding=self.tail.padding
         )
-        y = F.conv2d(
-            y,
-            self.tail2.weight[:, :c],
-            self.tail2.bias,
-            stride=self.tail2.stride,
-            padding=self.tail2.padding,
-        )
-
         y = self.alpha * self.upsampler(y)
         return y
     
@@ -146,8 +135,7 @@ class DPSR(nn.Module):
         for i in range(len(self.body)):
             total += self.body[i].param_num()
 
-        total += sum(p.numel() for p in self.tail1.parameters())
-        total += sum(p.numel() for p in self.tail2.parameters())
+        total += sum(p.numel() for p in self.tail.parameters())
 
         return total
 
