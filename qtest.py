@@ -3,6 +3,9 @@ import torch
 from utils import create_val_loader, test_parser, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics
 from models import build_qdpsr
 
+WEIGHT_BITWIDTH = 4
+ACTIVATION_BITWIDTH = 4
+
 
 def _build_val_loaders(scale, in_channels):
     return {
@@ -32,9 +35,8 @@ if __name__ == '__main__':
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
-        weight_bitwidth=args.w_bits,
-        activation_bitwidth=args.a_bits,
-        quant_method=args.quant_method,
+        weight_bitwidth=WEIGHT_BITWIDTH,
+        activation_bitwidth=ACTIVATION_BITWIDTH,
     ).to(device)
     net.head.set_input_quantization(False)
     checkpoint = torch.load("./checkpoints/QDPSR_x2_0327_1659.pth", map_location=device, weights_only=False)

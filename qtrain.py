@@ -13,6 +13,9 @@ from models import build_qdpsr
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, \
 create_logger, create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
+WEIGHT_BITWIDTH = 4
+ACTIVATION_BITWIDTH = 4
+
 
 def _build_q_model(args, device):
     model = build_qdpsr(
@@ -21,9 +24,8 @@ def _build_q_model(args, device):
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
-        weight_bitwidth=args.w_bits,
-        activation_bitwidth=args.a_bits,
-        quant_method=args.quant_method,
+        weight_bitwidth=WEIGHT_BITWIDTH,
+        activation_bitwidth=ACTIVATION_BITWIDTH,
     ).to(device)
     model.head.set_input_quantization(False)
     return model
@@ -54,6 +56,7 @@ def _log_model_metrics(logger, model, val_loaders, args, device):
 def main():
 
     args = train_parser()
+    args.model_name = "QDPSR"
     
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
     

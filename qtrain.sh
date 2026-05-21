@@ -1,5 +1,4 @@
 python qtrain.py \
-  --model_name "QDPSR" \
   --scale 2 \
   --channel_nums 36 \
   --num_blocks 5 \
@@ -12,9 +11,6 @@ python qtrain.py \
   --device "cuda" \
   --in_channels 3 \
   --patch_size 48 \
-  --w_bits 4 \
-  --a_bits 4 \
-  --quant_method "lsq_plus" \
   --warmup_epochs 15 \
   --ema_decay 0.999 \
   --shared_subnet_channels 18 \

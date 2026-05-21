@@ -19,9 +19,7 @@ import torch.nn as nn
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import DPSR
-from models.QConv2d_RLQ import QConv2dRLQ
-from models.QConv2d_PACT_SAWB import QConv2dPACTSAWB
-from models.QDPSR import QDPSR
+from models.QDPSR import QConv2dLSQP, QDPSR
 from utils.dataloader import create_val_loader
 
 
@@ -89,14 +87,14 @@ def _build_model(args, device):
 def _iter_track_modules(model: nn.Module):
     """DPSR: nn.Conv2d；QDPSR: QConv2d（与旧脚本层名 body.0.filter1 一致，不用 .conv 后缀）。"""
     for name, m in model.named_modules():
-        if isinstance(m, (QConv2dRLQ, QConv2dPACTSAWB)):
+        if isinstance(m, QConv2dLSQP):
             yield name, m
         elif isinstance(m, nn.Conv2d) and not name.endswith(".conv"):
             yield name, m
 
 
 def _module_weight(mod):
-    if isinstance(mod, (QConv2dRLQ, QConv2dPACTSAWB)):
+    if isinstance(mod, QConv2dLSQP):
         return mod.conv.weight
     return mod.weight
 
