@@ -12,7 +12,6 @@ class RoundSTE(torch.autograd.Function):
     def backward(ctx, grad_output):
         return grad_output
 
-
 class ScaleGrad(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, scale):
@@ -22,7 +21,6 @@ class ScaleGrad(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad_output):
         return grad_output * ctx.scale, None
-
 
 class LSQPlusActQuant(nn.Module):
     def __init__(self, bitwidth=4, channels=1, signed=True, eps=1e-8):
@@ -83,7 +81,6 @@ class LSQPlusActQuant(nn.Module):
         x_q = torch.clamp(RoundSTE.apply(x_hat), self.qn, self.qp)
         return x_q * s + beta
 
-
 class LSQPlusWeightQuant(nn.Module):
     def __init__(self, bitwidth=4, out_channels=1, eps=1e-8):
         super().__init__()
@@ -136,7 +133,6 @@ class LSQPlusWeightQuant(nn.Module):
         w_hat = (w - beta) / s
         w_q = torch.clamp(RoundSTE.apply(w_hat), self.qn, self.qp)
         return w_q * s + beta
-
 
 class QConv2dLSQP(nn.Module):
     def __init__(
@@ -337,8 +333,8 @@ class QDPSR(nn.Module):
         self.head = QConv2dLSQP(
             in_channels=in_dim,
             out_channels=fea_dim,
-            kernel_size=1,
-            padding=0,
+            kernel_size=3,
+            padding=1,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=8,
@@ -355,21 +351,11 @@ class QDPSR(nn.Module):
                 )
             )
 
-        self.tail1 = QConv2dLSQP(
-            in_channels=fea_dim,
-            out_channels=fea_dim,
-            kernel_size=3,
-            padding=1,
-            groups=fea_dim,
-            bias=bias,
-            weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8,
-        )
-        self.tail2 = QConv2dLSQP(
+        self.tail = QConv2dLSQP(
             in_channels=fea_dim,
             out_channels=in_dim * scale ** 2,
-            kernel_size=1,
-            padding=0,
+            kernel_size=3,
+            padding=1,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=8,
@@ -385,8 +371,7 @@ class QDPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail1(y)
-        y = self.tail2(y)
+        y = self.tail(y)
         y = self.alpha * self.upsampler(y)
 
         return y
@@ -398,8 +383,7 @@ class QDPSR(nn.Module):
         for i in range(len(self.body)):
             y = self.body[i].forward_shared_channel(y, c)
 
-        y = self.tail1.forward_shared_channel(y, c, c)
-        y = self.tail2.forward_shared_channel(y, c, self.tail2.conv.out_channels)
+        y = self.tail.forward_shared_channel(y, c, self.tail.conv.out_channels)
         y = self.alpha * self.upsampler(y)
         return y
 
@@ -409,8 +393,7 @@ class QDPSR(nn.Module):
         total += sum(p.numel() for p in self.head.conv.parameters())
         for i in range(len(self.body)):
             total += self.body[i].param_num()
-        total += sum(p.numel() for p in self.tail1.conv.parameters())
-        total += sum(p.numel() for p in self.tail2.conv.parameters())
+        total += sum(p.numel() for p in self.tail.conv.parameters())
 
         return total
 

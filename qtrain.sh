@@ -1,17 +1,17 @@
 python qtrain.py \
   --scale 2 \
-  --channel_nums 36 \
+  --channel_nums 32 \
   --num_blocks 5 \
   --epochs 150 \
   --batch_size 64 \
-  --lr 1.2e-3 \
-  --minlr 4e-5 \
+  --lr 1.5e-3 \
+  --minlr 5e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
-  --patch_size 48 \
-  --warmup_epochs 15 \
+  --patch_size 72 \
+  --warmup_epochs 20 \
   --ema_decay 0.999 \
-  --shared_subnet_channels 18 \
-  --shared_full_epochs 8
+  --shared_subnet_channels 16 \
+  --shared_full_epochs 20
