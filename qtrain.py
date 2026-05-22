@@ -31,6 +31,40 @@ def _build_q_model(args, device):
     return model
 
 
+def _load_fp_checkpoint_into_q_model(model, checkpoint_path, device, logger):
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    fp_state = checkpoint.get('model_state_dict', checkpoint)
+    q_state = model.state_dict()
+    mapped_state = {}
+    block_conv_names = {'filter1', 'filter2', 'projection1', 'projection2'}
+
+    for key, value in fp_state.items():
+        q_key = key
+
+        if key.startswith('head.'):
+            q_key = 'head.conv.' + key[len('head.'):]
+        elif key.startswith('tail.'):
+            q_key = 'tail.conv.' + key[len('tail.'):]
+        else:
+            parts = key.split('.')
+            if (
+                len(parts) >= 4
+                and parts[0] == 'body'
+                and parts[2] in block_conv_names
+                and parts[3] in {'weight', 'bias'}
+            ):
+                q_key = f'body.{parts[1]}.{parts[2]}.conv.{parts[3]}'
+
+        if q_key in q_state and q_state[q_key].shape == value.shape:
+            mapped_state[q_key] = value
+        else:
+            logger.info(f'Skip pretrained key: {key} -> {q_key}')
+
+    q_state.update(mapped_state)
+    model.load_state_dict(q_state)
+    logger.info(f'Loaded {len(mapped_state)} tensors from full-precision checkpoint: {checkpoint_path}')
+
+
 def _weighted_val_loss(model, val_loaders, loss_func, device):
     weighted_val_loss = 0.0
     total_val_samples = 0
@@ -92,6 +126,9 @@ def main():
     save_dir.mkdir(parents=True, exist_ok=True)
     model_path = save_dir / f"{args.model_name}_x{args.scale}_{time_stamp}.pth"
     model = _build_q_model(args, device)
+
+    if args.pretrained_fp:
+        _load_fp_checkpoint_into_q_model(model, args.pretrained_fp, device, logger)
 
     # 统计模型参数量
     total_params = model.param_num()

@@ -15,3 +15,4 @@ python qtrain.py \
   --ema_decay 0.999 \
   --shared_subnet_channels 16 \
   --shared_full_epochs 5
+  --pretrained_fp "./checkpoints/DPSR_x2_0514_2125.pth"

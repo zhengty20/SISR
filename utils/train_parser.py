@@ -15,6 +15,7 @@ def train_parser():
     parser.add_argument('--num_workers', type=int, default=8, help='data loader worker count')
     parser.add_argument('--save_dir', type=str, default='./checkpoints', help='checkpoint directory')
     parser.add_argument('--device', type=str, default='cuda', help='training device')
+    parser.add_argument('--pretrained_fp', type=str, default='', help='full-precision DPSR checkpoint used to initialize QDPSR')
     parser.add_argument('--in_channels', type=int, default=3, choices=[1, 3], help='input channels, 1 for Y and 3 for RGB')
     parser.add_argument('--patch_size', type=int, default=0, help='HR crop size, 0 means choose automatically by scale')
     parser.add_argument('--warmup_epochs', type=int, default=15, help='number of warmup epochs')
