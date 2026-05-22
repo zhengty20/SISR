@@ -14,4 +14,4 @@ python qtrain.py \
   --warmup_epochs 20 \
   --ema_decay 0.999 \
   --shared_subnet_channels 16 \
-  --shared_full_epochs 20
+  --shared_full_epochs 5
