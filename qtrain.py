@@ -13,10 +13,6 @@ from models import build_qdpsr
 from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, \
 create_logger, create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
-WEIGHT_BITWIDTH = 4
-ACTIVATION_BITWIDTH = 4
-
-
 def _build_q_model(args, device):
     model = build_qdpsr(
         scale=args.scale,
@@ -24,12 +20,11 @@ def _build_q_model(args, device):
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
-        weight_bitwidth=WEIGHT_BITWIDTH,
-        activation_bitwidth=ACTIVATION_BITWIDTH,
+        weight_bitwidth=args.wbits,
+        activation_bitwidth=args.abits,
     ).to(device)
     model.head.set_input_quantization(False)
     return model
-
 
 def _load_fp_checkpoint_into_q_model(model, checkpoint_path, device, logger):
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
@@ -64,7 +59,6 @@ def _load_fp_checkpoint_into_q_model(model, checkpoint_path, device, logger):
     model.load_state_dict(q_state)
     logger.info(f'Loaded {len(mapped_state)} tensors from full-precision checkpoint: {checkpoint_path}')
 
-
 def _weighted_val_loss(model, val_loaders, loss_func, device):
     weighted_val_loss = 0.0
     total_val_samples = 0
@@ -75,7 +69,6 @@ def _weighted_val_loss(model, val_loaders, loss_func, device):
         total_val_samples += sample_count
     return weighted_val_loss / total_val_samples
 
-
 def _log_model_metrics(logger, model, val_loaders, args, device):
     for dataset_name, loader in val_loaders.items():
         val_metrics = validate_metrics(model, loader, args.scale, device, 1.0)
@@ -85,7 +78,6 @@ def _log_model_metrics(logger, model, val_loaders, args, device):
     for dataset_name, loader in val_loaders.items():
         subnet_metrics = validate_metrics_shared_channel(model, loader, args.scale, device, args.shared_subnet_channels, 1.0)
         logger.log_validation_results(f"{dataset_name}{suffix}", subnet_metrics)
-
 
 def main():
 
