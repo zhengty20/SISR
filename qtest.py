@@ -10,7 +10,6 @@ WEIGHT_BITWIDTH = 4
 ACTIVATION_BITWIDTH = 4
 DUMP_LAYERS = ('body.1.projection2', 'body.3.filter2')
 SCRIPT_DIR = Path(__file__).resolve().parent
-DUMP_DIR = SCRIPT_DIR / 'layer_inputs'
 OUTPUT_DIR = SCRIPT_DIR / 'distribution_plots'
 BINS = 160
 LOW_Q = 0.001
@@ -18,12 +17,11 @@ HIGH_Q = 0.999
 
 
 class InputDistributionCollector:
-    def __init__(self, model, max_forwards=3, dump_layers=None, dump_dir=DUMP_DIR):
+    def __init__(self, model, max_forwards=3, dump_layers=None):
         self.handles = []
         self.inputs = {}
         self.dump_layers = set(dump_layers or [])
-        self.dump_dir = Path(dump_dir)
-        self.saved_raw = {}
+        self.plot_inputs = {}
         self.max_forwards = max_forwards
         self.forward_count = 0
         self.collected = False
@@ -53,8 +51,8 @@ class InputDistributionCollector:
 
             first_image = x[:1].detach().float().cpu()
             self.inputs[name].append(first_image.flatten())
-            if name in self.dump_layers and name not in self.saved_raw:
-                self.saved_raw[name] = first_image.clone()
+            if name in self.dump_layers and name not in self.plot_inputs:
+                self.plot_inputs[name] = first_image.clone()
         return hook
 
     def _count_forward(self, module, inputs, output):
@@ -66,19 +64,6 @@ class InputDistributionCollector:
         for handle in self.handles:
             handle.remove()
         self.handles = []
-
-    def save_raw_inputs(self):
-        if not self.saved_raw:
-            return {}
-        self.dump_dir.mkdir(parents=True, exist_ok=True)
-        saved_paths = {}
-        for name, tensor in self.saved_raw.items():
-            safe_name = safe_layer_name(name)
-            output_path = self.dump_dir / f'{safe_name}_input.npy'
-            if save_tensor_as_npy(tensor, output_path):
-                saved_paths[name] = output_path
-                print(f'Saved raw input for {name}: {output_path}')
-        return saved_paths
 
     def print(self):
         print('\nFirst image layer input distributions:')
@@ -105,16 +90,6 @@ def safe_layer_name(name):
     return name.replace('.', '_')
 
 
-def save_tensor_as_npy(tensor, output_path):
-    try:
-        import numpy as np
-    except ImportError:
-        print('Skipped raw input save: numpy is not installed.')
-        return False
-    np.save(output_path, tensor.numpy())
-    return True
-
-
 def robust_xlim(values):
     import numpy as np
 
@@ -129,7 +104,7 @@ def robust_xlim(values):
     return float(lo - pad), float(hi + pad)
 
 
-def plot_distribution(name, npy_path, output_dir=OUTPUT_DIR):
+def plot_distribution(name, tensor, output_dir=OUTPUT_DIR):
     try:
         import numpy as np
         import matplotlib
@@ -140,7 +115,7 @@ def plot_distribution(name, npy_path, output_dir=OUTPUT_DIR):
         print(f'Skipped distribution plot for {name}: {exc.name} is not installed.')
         return
 
-    arr = np.load(npy_path).astype(np.float32)
+    arr = tensor.numpy().astype(np.float32)
     values = arr.reshape(-1)
 
     full_x_min, full_x_max = robust_xlim(values)
@@ -250,9 +225,9 @@ def plot_distribution(name, npy_path, output_dir=OUTPUT_DIR):
     )
 
 
-def plot_raw_inputs(saved_paths):
-    for name, npy_path in saved_paths.items():
-        plot_distribution(name, npy_path)
+def plot_layer_inputs(layer_inputs):
+    for name, tensor in layer_inputs.items():
+        plot_distribution(name, tensor)
 
 
 def _build_val_loaders(scale, in_channels):
@@ -293,7 +268,6 @@ if __name__ == '__main__':
     net.load_state_dict(model_state_dict)
     net.eval()
     collector = InputDistributionCollector(net, dump_layers=DUMP_LAYERS)
-    print(f'Raw inputs will be saved to: {DUMP_DIR}')
     print(f'Distribution plots will be saved to: {OUTPUT_DIR}')
 
     val_loaders = _build_val_loaders(args.scale, args.in_channels)
@@ -304,8 +278,7 @@ if __name__ == '__main__':
     )
     collector.close()
     collector.print()
-    saved_paths = collector.save_raw_inputs()
-    plot_raw_inputs(saved_paths)
+    plot_layer_inputs(collector.plot_inputs)
 
     _print_metrics(
         loaders=val_loaders,
