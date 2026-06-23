@@ -1,4 +1,4 @@
-﻿import torch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -178,23 +178,6 @@ class QConv2dLSQP(nn.Module):
             return self.act_quant(x, active_channels=x.shape[1])
         return x
 
-    def _slice_shared_tensors(self, x, active_in_channels, active_out_channels):
-        if self.conv.groups == 1:
-            x_use = x[:, :active_in_channels]
-            w_use = self.conv.weight[:active_out_channels, :active_in_channels]
-            b_use = self.conv.bias[:active_out_channels] if self.conv.bias is not None else None
-            return x_use, w_use, b_use, 1, active_out_channels
-
-        is_depthwise = self.conv.groups == self.conv.in_channels and self.conv.in_channels == self.conv.out_channels
-        if is_depthwise:
-            active_c = min(active_in_channels, active_out_channels)
-            x_use = x[:, :active_c]
-            w_use = self.conv.weight[:active_c]
-            b_use = self.conv.bias[:active_c] if self.conv.bias is not None else None
-            return x_use, w_use, b_use, active_c, active_c
-
-        raise NotImplementedError("Only groups=1 or depthwise are supported")
-
     def forward(self, x):
         qx = self._maybe_quantize_input(x)
         qw = self.weight_quant(self.conv.weight, active_out_channels=self.conv.out_channels)
@@ -205,25 +188,6 @@ class QConv2dLSQP(nn.Module):
             stride=self.conv.stride,
             padding=self.conv.padding,
             groups=self.conv.groups,
-        )
-
-    def forward_shared_channel(self, x, active_in_channels, active_out_channels):
-        active_in_channels = int(active_in_channels)
-        active_out_channels = int(active_out_channels)
-        x_use, w_use, b_use, groups, active_out = self._slice_shared_tensors(
-            x=x,
-            active_in_channels=active_in_channels,
-            active_out_channels=active_out_channels,
-        )
-        qx = self._maybe_quantize_input(x_use)
-        qw = self.weight_quant(w_use, active_out_channels=active_out)
-        return F.conv2d(
-            qx,
-            qw,
-            b_use,
-            stride=self.conv.stride,
-            padding=self.conv.padding,
-            groups=groups,
         )
 
 class QBlock(nn.Module):
@@ -277,31 +241,21 @@ class QBlock(nn.Module):
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=activation_bitwidth,
         )
-        self.act = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
-        self.scale = nn.Parameter(torch.ones(1, fea_dim, 1, 1))
+        self.act1 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
+        self.act2 = nn.PReLU(num_parameters=self.fea_dim, init=0.25)
 
     def forward(self, x):
 
         y = self.filter1(x)
         y = self.projection1(y)
-        y = self.act(y)
+        y = self.act1(y)
 
         y = self.filter2(y)
         y = self.projection2(y)
-        y = y * self.scale + x
+        y = self.act2(y)
 
         return y
 
-    def forward_shared_channel(self, x, active_channels):
-        c = int(active_channels)
-        y = self.filter1.forward_shared_channel(x, c, c)
-        y = self.projection1.forward_shared_channel(y, c, c)
-        y = F.prelu(y, self.act.weight[:c])
-
-        y = self.filter2.forward_shared_channel(y, c, c)
-        y = self.projection2.forward_shared_channel(y, c, c)
-        y = y * self.scale[:, :c] + x[:, :c]
-        return y
 
     def param_num(self):
 
@@ -330,14 +284,25 @@ class QDPSR(nn.Module):
         self.bias = bias
         self.fea_dim = fea_dim
 
-        self.head = QConv2dLSQP(
+        self.head1 = QConv2dLSQP(
             in_channels=in_dim,
-            out_channels=fea_dim,
+            out_channels=in_dim,
             kernel_size=3,
             padding=1,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
             activation_bitwidth=8,
+            groups=in_dim
+        )
+
+        self.head2 = QConv2dLSQP(
+            in_channels=in_dim,
+            out_channels=fea_dim,
+            kernel_size=1,
+            padding=0,
+            bias=bias,
+            weight_bitwidth=weight_bitwidth,
+            activation_bitwidth=activation_bitwidth,
         )
 
         self.body = nn.ModuleList()
@@ -351,49 +316,53 @@ class QDPSR(nn.Module):
                 )
             )
 
-        self.tail = QConv2dLSQP(
+        self.tail1 = QConv2dLSQP(
             in_channels=fea_dim,
-            out_channels=in_dim * scale ** 2,
+            out_channels=fea_dim,
             kernel_size=3,
             padding=1,
             bias=bias,
             weight_bitwidth=weight_bitwidth,
-            activation_bitwidth=8,
+            activation_bitwidth=activation_bitwidth,
+            groups=fea_dim
+        )
+
+        self.tail2 = QConv2dLSQP(
+            in_channels=fea_dim,
+            out_channels=in_dim * scale ** 2,
+            kernel_size=1,
+            padding=0,
+            bias=bias,
+            weight_bitwidth=weight_bitwidth,
+            activation_bitwidth=activation_bitwidth,
         )
         
         self.upsampler = nn.PixelShuffle(scale)
-        self.alpha = nn.Parameter(torch.ones(1, 3, 1, 1))
 
     def forward(self, x):
 
-        y = self.head(x)
+        y = self.head1(x)
+        y = self.head2(y)
 
         for i in range(len(self.body)):
             y = self.body[i](y)
 
-        y = self.tail(y)
-        y = self.alpha * self.upsampler(y)
+        y = self.tail1(y)
+        y = self.tail2(y)
+        y = self.upsampler(y)
 
         return y
 
-    def forward_shared_channel(self, x, active_channels):
-        c = max(1, min(int(active_channels), self.fea_dim))
-        y = self.head.forward_shared_channel(x, self.head.conv.in_channels, c)
-
-        for i in range(len(self.body)):
-            y = self.body[i].forward_shared_channel(y, c)
-
-        y = self.tail.forward_shared_channel(y, c, self.tail.conv.out_channels)
-        y = self.alpha * self.upsampler(y)
-        return y
 
     def param_num(self):
 
         total = 0
-        total += sum(p.numel() for p in self.head.conv.parameters())
+        total += sum(p.numel() for p in self.head1.conv.parameters())
+        total += sum(p.numel() for p in self.head2.conv.parameters())
         for i in range(len(self.body)):
             total += self.body[i].param_num()
-        total += sum(p.numel() for p in self.tail.conv.parameters())
+        total += sum(p.numel() for p in self.tail1.conv.parameters())
+        total += sum(p.numel() for p in self.tail2.conv.parameters())
 
         return total
 

@@ -1,16 +1,254 @@
-import torch
+from pathlib import Path
+import csv
 
-from utils import create_val_loader, test_parser, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, bilinear_metrics
+import torch
+import torch.nn as nn
+
+from utils import create_val_loader, test_parser, validate_metrics, bicubic_metrics
 from models import DPSR
+
+DUMP_LAYERS = ('body.1.projection2', 'body.3.filter2')
+SCRIPT_DIR = Path(__file__).resolve().parent
+DUMP_DIR = SCRIPT_DIR / 'layer_inputs'
+OUTPUT_DIR = SCRIPT_DIR / 'distribution_plots'
+EXPORT_DIR = SCRIPT_DIR / 'data_exports'
+BINS = 160
+LOW_Q = 0.001
+HIGH_Q = 0.999
+
+
+class InputDistributionCollector:
+    def __init__(self, model, max_forwards=3, dump_layers=None, dump_dir=DUMP_DIR):
+        self.handles = []
+        self.inputs = {}
+        self.dump_layers = set(dump_layers or [])
+        self.dump_dir = Path(dump_dir)
+        self.saved_raw = {}
+        self.max_forwards = max_forwards
+        self.forward_count = 0
+        self.collected = False
+
+        for name, module in model.named_modules():
+            if name and self._should_collect(module):
+                self.inputs[name] = []
+                self.handles.append(module.register_forward_pre_hook(self._make_hook(name)))
+        unmatched_layers = self.dump_layers - set(self.inputs)
+        if unmatched_layers:
+            print(f'Warning: dump layers not found or not collectable: {sorted(unmatched_layers)}')
+        self.handles.append(model.register_forward_hook(self._count_forward))
+
+    @staticmethod
+    def _should_collect(module):
+        return isinstance(module, (nn.Conv2d, nn.PReLU, nn.PixelShuffle))
+
+    def _make_hook(self, name):
+        def hook(module, inputs):
+            if self.collected:
+                return
+            if not inputs:
+                return
+            x = inputs[0]
+            if not torch.is_tensor(x):
+                return
+
+            first_image = x[:1].detach().float().cpu()
+            self.inputs[name].append(first_image.flatten())
+            if name in self.dump_layers and name not in self.saved_raw:
+                self.saved_raw[name] = first_image.clone()
+        return hook
+
+    def _count_forward(self, module, inputs, output):
+        self.forward_count += 1
+        if self.forward_count >= self.max_forwards:
+            self.collected = True
+
+    def close(self):
+        for handle in self.handles:
+            handle.remove()
+        self.handles = []
+
+    def save_raw_inputs(self):
+        if not self.saved_raw:
+            return {}
+        self.dump_dir.mkdir(parents=True, exist_ok=True)
+        saved_paths = {}
+        for name, tensor in self.saved_raw.items():
+            safe_name = safe_layer_name(name)
+            output_path = self.dump_dir / f'{safe_name}_input.npy'
+            if save_tensor_as_npy(tensor, output_path):
+                saved_paths[name] = output_path
+                print(f'Saved raw input for {name}: {output_path}')
+        return saved_paths
+
+    def print(self):
+        print('\nFirst image layer input distributions:')
+        for name, values in self.inputs.items():
+            if not values:
+                print(f'{name}: no tensor input collected')
+                continue
+            x = torch.cat(values)
+            q01, q50, q99 = torch.quantile(x, torch.tensor([0.01, 0.50, 0.99]))
+            print(
+                f'{name}: '
+                f'numel={x.numel()}, '
+                f'mean={x.mean().item():.6f}, '
+                f'std={x.std(unbiased=False).item():.6f}, '
+                f'min={x.min().item():.6f}, '
+                f'p01={q01.item():.6f}, '
+                f'p50={q50.item():.6f}, '
+                f'p99={q99.item():.6f}, '
+                f'max={x.max().item():.6f}'
+            )
+
+
+def safe_layer_name(name):
+    return name.replace('.', '_')
+
+
+def save_tensor_as_npy(tensor, output_path):
+    try:
+        import numpy as np
+    except ImportError:
+        print('Skipped raw input save: numpy is not installed.')
+        return False
+    np.save(output_path, tensor.numpy())
+    return True
+
+
+def robust_xlim(values):
+    import numpy as np
+
+    lo, hi = np.quantile(values, [LOW_Q, HIGH_Q])
+    if np.isclose(lo, hi):
+        lo, hi = values.min(), values.max()
+    if np.isclose(lo, hi):
+        pad = max(abs(float(lo)) * 0.1, 1e-3)
+        return float(lo - pad), float(hi + pad)
+
+    pad = float(hi - lo) * 0.08
+    return float(lo - pad), float(hi + pad)
+
+
+def iter_tensor_rows(arr):
+    import numpy as np
+
+    for idx in np.ndindex(arr.shape):
+        yield (*idx, float(arr[idx]))
+
+
+def export_csv(name, npy_path):
+    import numpy as np
+
+    arr = np.load(npy_path).astype(np.float32)
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = EXPORT_DIR / f'{Path(npy_path).stem}.csv'
+
+    dim_headers = [f'dim_{i}' for i in range(arr.ndim)]
+    with output_path.open('w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow([*dim_headers, 'value'])
+        writer.writerows(iter_tensor_rows(arr))
+
+    print(f'Saved {output_path} | shape={arr.shape}')
+    return safe_layer_name(name), arr
+
+    print(f'Saved {output_path}')
+
+
+def export_raw_data(saved_paths):
+    layer_arrays = []
+    for name, npy_path in saved_paths.items():
+        layer_arrays.append(export_csv(name, npy_path))
+
+
+def smooth_hist(values, bins=160, xlim=None, sigma_bins=1.2):
+    import numpy as np
+
+    if xlim is None:
+        xlim = (values.min(), values.max())
+
+    counts, edges = np.histogram(values, bins=bins, range=xlim, density=True)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+
+    radius = max(1, int(3 * sigma_bins))
+    kx = np.arange(-radius, radius + 1)
+    kernel = np.exp(-0.5 * (kx / sigma_bins) ** 2)
+    kernel /= kernel.sum()
+    counts = np.convolve(counts, kernel, mode='same')
+
+    return centers, counts
+
+
+def plot_distribution(name, npy_path, core_xlim=(-0.3, 0.3), output_dir=OUTPUT_DIR):
+    try:
+        import numpy as np
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+    except ImportError as exc:
+        print(f'Skipped distribution plot for {name}: {exc.name} is not installed.')
+        return
+
+    values = np.load(npy_path).astype(np.float32).reshape(-1)
+    x_min, x_max = robust_xlim(values)
+
+    full = values[(values >= x_min) & (values <= x_max)]
+    core = values[(values >= core_xlim[0]) & (values <= core_xlim[1])]
+
+    if core.size == 0:
+        core = values
+        core_xlim = (float(values.min()), float(values.max()))
+
+    fig, ax = plt.subplots(figsize=(5.6, 4.4))
+
+    color = "#3c973b"
+    xs, ys = smooth_hist(core, bins=140, xlim=core_xlim)
+    ax.fill_between(xs, ys, color=color, alpha=0.35, linewidth=0)
+    ax.plot(xs, ys, color=color, linewidth=2.2)
+
+    ax.axvline(0, color='black', linewidth=1.0, alpha=0.8)
+
+    ax.set_xlim(*core_xlim)
+    ax.set_xlabel('Activation value', fontsize=10)
+    ax.set_ylabel('Density', fontsize=10)
+    ax.tick_params(labelsize=9)
+
+    ax.grid(visible=True, axis='y', color='gray', linestyle='--', linewidth=0.45, alpha=0.45)
+    ax.grid(visible=False, axis='x')
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    stem = safe_layer_name(name)
+    png_path = output_dir / f'{stem}_distribution_compact.png'
+
+    fig.tight_layout(pad=0.4)
+    fig.savefig(png_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+
+    print(
+        f'Saved {png_path}| '
+        f'shape={values.shape}, '
+        f'min={values.min():.6f}, max={values.max():.6f}, '
+        f'mean={values.mean():.6f}, std={np.std(values):.6f}, '
+        f'full_xlim=({x_min:.6f}, {x_max:.6f}), '
+        f'core_xlim=({core_xlim[0]:.2f}, {core_xlim[1]:.2f})'
+    )
+
+
+def plot_raw_inputs(saved_paths):
+    for name, npy_path in saved_paths.items():
+        plot_distribution(name, npy_path)
 
 
 def _build_val_loaders(scale, in_channels):
     return {
         'Set5': create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', scale, in_channels=in_channels),
-        'Set14': create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', scale, in_channels=in_channels),
-        'B100': create_val_loader('/home/tyzheng/Datasets_pt/val/B100', scale, in_channels=in_channels),
-        'U100': create_val_loader('/home/tyzheng/Datasets_pt/val/U100', scale, in_channels=in_channels),
-        'M109': create_val_loader('/home/tyzheng/Datasets_pt/val/M109', scale, in_channels=in_channels),
+        # 'Set14': create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', scale, in_channels=in_channels),
+        # 'B100': create_val_loader('/home/tyzheng/Datasets_pt/val/B100', scale, in_channels=in_channels),
+        # 'U100': create_val_loader('/home/tyzheng/Datasets_pt/val/U100', scale, in_channels=in_channels),
+        # 'M109': create_val_loader('/home/tyzheng/Datasets_pt/val/M109', scale, in_channels=in_channels),
     }
 
 
@@ -27,10 +265,14 @@ if __name__ == '__main__':
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
     net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    checkpoint = torch.load("./checkpoints/DPSR_x2_0327_1645.pth", map_location=device, weights_only=False)
+    checkpoint = torch.load("./checkpoints/DPSR_x2_0607_1913.pth", map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
     net.load_state_dict(model_state_dict)
     net.eval()
+    collector = InputDistributionCollector(net, dump_layers=DUMP_LAYERS)
+    print(f'Raw inputs will be saved to: {DUMP_DIR}')
+    print(f'Distribution plots will be saved to: {OUTPUT_DIR}')
+    print(f'Data exports will be saved to: {EXPORT_DIR}')
 
     val_loaders = _build_val_loaders(args.scale, args.in_channels)
 
@@ -38,18 +280,8 @@ if __name__ == '__main__':
         loaders=val_loaders,
         metric_fn=lambda loader: validate_metrics(net, loader, args.scale, device, 1.0),
     )
-    _print_metrics(
-        loaders=val_loaders,
-        metric_fn=lambda loader: validate_metrics_shared_channel(net, loader, args.scale, device, args.shared_subnet_channels, 1.0),
-        name_suffix=f'-C{args.shared_subnet_channels}',
-    )
-    _print_metrics(
-        loaders=val_loaders,
-        metric_fn=lambda loader: bicubic_metrics(loader, args.scale, device),
-        name_suffix='-bicubic',
-    )
-    _print_metrics(
-        loaders=val_loaders,
-        metric_fn=lambda loader: bilinear_metrics(loader, args.scale, device),
-        name_suffix='-bilinear',
-    )
+    collector.close()
+    collector.print()
+    saved_paths = collector.save_raw_inputs()
+    plot_raw_inputs(saved_paths)
+    export_raw_data(saved_paths)

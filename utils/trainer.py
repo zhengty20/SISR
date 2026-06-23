@@ -47,7 +47,7 @@ def _evaluate_metrics_loop(val_loader, device, sr_builder, scale, clip_ratio, de
             metrics_list.append((psnr, ssim))
     return _finalize_metrics(metrics_list, clip_ratio)
 
-def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=None, subnet_channels=16, shared_full_epochs=5):
+def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=None):
     """训练一个epoch"""
     model.train()
     running_loss = 0.0
@@ -59,18 +59,7 @@ def train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=No
         optimizer.zero_grad(set_to_none=True)
         hr_img = _build_residual_target(hr_img, lr_img, model.scale)
         sr_img = model(lr_img / 255.)
-        loss_full = loss_func(sr_img, hr_img)
-        loss = loss_full
-
-        if epoch < shared_full_epochs:
-            loss = loss_full
-        else:
-            sr_sub = model.forward_shared_channel(lr_img / 255., subnet_channels)
-            loss_sub = loss_func(sr_sub, hr_img)
-            if step % 2 == 0:
-                loss = loss_full
-            else:
-                loss = loss_sub
+        loss = loss_func(sr_img, hr_img)
         
         loss.backward()
         optimizer.step()
@@ -109,22 +98,6 @@ def validate_metrics(model, val_loader, scale, device, clip_ratio=1.0):
         desc='metric-validating',
         sr_builder=lambda lr_img: (
             model(lr_img / 255.) * 255.
-            + F.interpolate(lr_img, scale_factor=model.scale, mode='bilinear', align_corners=False)
-        ),
-    )
-
-def validate_metrics_shared_channel(model, val_loader, scale, device, active_channels, clip_ratio=1.0):
-    model.eval()
-    if not hasattr(model, "forward_shared_channel"):
-        raise AttributeError("模型不支持 forward_shared_channel")
-    return _evaluate_metrics_loop(
-        val_loader=val_loader,
-        device=device,
-        scale=scale,
-        clip_ratio=clip_ratio,
-        desc='metric-validating-shared',
-        sr_builder=lambda lr_img: (
-            model.forward_shared_channel(lr_img / 255., active_channels) * 255.
             + F.interpolate(lr_img, scale_factor=model.scale, mode='bilinear', align_corners=False)
         ),
     )

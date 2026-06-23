@@ -16,8 +16,6 @@ class ARMSRFrame:
         overlap,
         threshold,
         device,
-        subnet_channels=None,
-        subnet_thresholds=None,
     ):
         self.residual_model = residual_model
         self.scale = scale
@@ -30,59 +28,12 @@ class ARMSRFrame:
             raise ValueError("arm_overlap 必须小于 arm_patch_size")
         lap = torch.tensor([[0.0, 1.0, 0.0], [1.0, -4.0, 1.0], [0.0, 1.0, 0.0]], device=device)
         self.laplace_kernel = lap.view(1, 1, 3, 3)
-        self.subnet_channels = self._build_subnet_channels(subnet_channels)
-        self.subnet_thresholds = self._build_subnet_thresholds(subnet_thresholds)
-        self.bilinear_threshold = self.subnet_thresholds[0]
-        self.subnet_threshold = self.subnet_thresholds[1]
 
-    def _build_subnet_channels(self, subnet_channels):
-        max_channels = int(getattr(self.residual_model, "fea_dim", 32))
-        if subnet_channels is None:
-            subnet_channels = [0, 16, max_channels]
-        cleaned = sorted(set(max(0, min(int(c), max_channels)) for c in subnet_channels))
-        if not cleaned:
-            cleaned = [0, 16, max_channels]
-        if 0 not in cleaned:
-            cleaned.insert(0, 0)
-        if len(cleaned) < 3:
-            mid = max(1, max_channels // 2)
-            if mid not in cleaned:
-                cleaned.append(mid)
-        if max_channels not in cleaned:
-            cleaned.append(max_channels)
-        cleaned = sorted(set(cleaned))
-        if len(cleaned) < 3:
-            raise ValueError("arm_subnet_channels 至少需要三个通道档位: bilinear/subnet/net")
-        return cleaned
+    def _use_residual_model(self, score):
+        return score >= self.threshold
 
-    def _build_subnet_thresholds(self, subnet_thresholds):
-        if subnet_thresholds is None:
-            return [self.threshold, self.threshold * 2.0]
-
-        cleaned = sorted([float(v) for v in subnet_thresholds])
-        expected = 2
-        if len(cleaned) != expected:
-            raise ValueError(f"arm_subnet_thresholds 数量应为 {expected}，当前为 {len(cleaned)}")
-        if cleaned[0] >= cleaned[1]:
-            raise ValueError("arm_subnet_thresholds 需满足 t_bilinear < t_subnet")
-        return cleaned
-
-    def _select_channels(self, score):
-        # 三段式分支: bilinear / bilinear+subnet / bilinear+net
-        if score < self.bilinear_threshold:
-            return 0
-        if score < self.subnet_threshold:
-            return self.subnet_channels[1]
-        return self.subnet_channels[-1]
-
-    def _infer_residual(self, lr_patch, active_channels):
-        if active_channels <= 0:
-            return None
-        if hasattr(self.residual_model, "forward_shared_channel"):
-            residual = self.residual_model.forward_shared_channel(lr_patch / 255.0, active_channels)
-        else:
-            residual = self.residual_model(lr_patch / 255.0)
-        return residual * 255.0
+    def _infer_residual(self, lr_patch):
+        return self.residual_model(lr_patch / 255.0) * 255.0
 
     def _starts(self, length):
         if length <= self.patch_size:
@@ -110,7 +61,7 @@ class ARMSRFrame:
         total_patches = 0
         enhanced_patches = 0
         score_sum = 0.0
-        subnet_usage = {c: 0 for c in self.subnet_channels}
+        branch_usage = {"bilinear": 0, "model": 0}
 
         h_starts = self._starts(lr_h)
         w_starts = self._starts(lr_w)
@@ -133,13 +84,13 @@ class ARMSRFrame:
                     total_patches += 1
 
                     base = bilinear_interpolation(lr_patch, self.scale, bit8=True)
-                    active_channels = self._select_channels(score)
-                    subnet_usage[active_channels] = subnet_usage.get(active_channels, 0) + 1
-                    residual = self._infer_residual(lr_patch, active_channels)
-                    if residual is not None:
+                    if self._use_residual_model(score):
+                        branch_usage["model"] += 1
+                        residual = self._infer_residual(lr_patch)
                         sr_patch = (base + residual).round().clamp(0, 255)
                         enhanced_patches += 1
                     else:
+                        branch_usage["bilinear"] += 1
                         sr_patch = base.clamp(0, 255)
 
                     hr_top = top * self.scale
@@ -156,25 +107,9 @@ class ARMSRFrame:
             "enhanced_patches": enhanced_patches,
             "enhanced_ratio": enhanced_patches / max(1, total_patches),
             "avg_laplace_score": score_sum / max(1, total_patches),
-            "subnet_usage": subnet_usage,
+            "branch_usage": branch_usage,
         }
         return sr_img, stats
-
-
-def _parse_int_list(csv_text):
-    if not csv_text:
-        return None
-    values = [item.strip() for item in csv_text.split(",")]
-    values = [item for item in values if item]
-    return [int(v) for v in values] if values else None
-
-
-def _parse_float_list(csv_text):
-    if not csv_text:
-        return None
-    values = [item.strip() for item in csv_text.split(",")]
-    values = [item for item in values if item]
-    return [float(v) for v in values] if values else None
 
 
 def build_residual_model(args, device):
@@ -212,7 +147,7 @@ def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
     total_patches = 0
     enhanced_patches = 0
     score_sum = 0.0
-    subnet_usage = {}
+    branch_usage = {}
 
     with torch.no_grad():
         for lr_img, hr_img in val_loader:
@@ -230,8 +165,8 @@ def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
             total_patches += stat["total_patches"]
             enhanced_patches += stat["enhanced_patches"]
             score_sum += stat["avg_laplace_score"] * stat["total_patches"]
-            for c, cnt in stat.get("subnet_usage", {}).items():
-                subnet_usage[c] = subnet_usage.get(c, 0) + cnt
+            for branch, cnt in stat.get("branch_usage", {}).items():
+                branch_usage[branch] = branch_usage.get(branch, 0) + cnt
 
     if clip_ratio < 1.0:
         metrics_list.sort(key=lambda x: x[0], reverse=True)
@@ -251,7 +186,7 @@ def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
         "avg_laplace_score": score_sum / max(1, total_patches),
         "enhanced_patches": enhanced_patches,
         "total_patches": total_patches,
-        "subnet_usage": subnet_usage,
+        "branch_usage": branch_usage,
     }
     return result, stats
 
@@ -260,8 +195,6 @@ def main():
     args = arm_test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     residual_model = build_residual_model(args, device)
-    subnet_channels = _parse_int_list(args.arm_subnet_channels)
-    subnet_thresholds = _parse_float_list(args.arm_subnet_thresholds)
     frame = ARMSRFrame(
         residual_model=residual_model,
         scale=args.scale,
@@ -269,8 +202,6 @@ def main():
         overlap=args.arm_overlap,
         threshold=args.arm_threshold,
         device=device,
-        subnet_channels=subnet_channels,
-        subnet_thresholds=subnet_thresholds,
     )
 
     val_loaders = {
@@ -288,8 +219,8 @@ def main():
             f'EnhPatch: {stat["enhanced_ratio"] * 100:.2f}% ({stat["enhanced_patches"]}/{stat["total_patches"]}), '
             f'LapMean: {stat["avg_laplace_score"]:.4f}'
         )
-        usage_text = ", ".join([f"C{c}:{cnt}" for c, cnt in sorted(stat["subnet_usage"].items())])
-        print(f"SubnetUsage: {usage_text}")
+        usage_text = ", ".join([f"{branch}:{cnt}" for branch, cnt in sorted(stat["branch_usage"].items())])
+        print(f"BranchUsage: {usage_text}")
 
 if __name__ == "__main__":
     main()

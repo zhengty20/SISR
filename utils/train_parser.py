@@ -1,4 +1,4 @@
-﻿import argparse
+import argparse
 
 
 def train_parser():
@@ -22,7 +22,5 @@ def train_parser():
     parser.add_argument('--patch_size', type=int, default=0, help='HR crop size, 0 means choose automatically by scale')
     parser.add_argument('--warmup_epochs', type=int, default=15, help='number of warmup epochs')
     parser.add_argument('--ema_decay', type=float, default=0.999, help='EMA decay')
-    parser.add_argument('--shared_subnet_channels', type=int, default=16, help='shared subnet channel count')
-    parser.add_argument('--shared_full_epochs', type=int, default=50, help='epochs to train only the full-channel subnet')
 
     return parser.parse_args()

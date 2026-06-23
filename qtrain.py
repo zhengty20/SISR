@@ -10,7 +10,7 @@ from torch_ema import ExponentialMovingAverage
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import build_qdpsr
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, validate_metrics_shared_channel, bicubic_metrics, \
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, bicubic_metrics, \
 create_logger, create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 def _build_q_model(args, device):
@@ -23,7 +23,6 @@ def _build_q_model(args, device):
         weight_bitwidth=args.wbits,
         activation_bitwidth=args.abits,
     ).to(device)
-    model.head.set_input_quantization(False)
     return model
 
 def _load_fp_checkpoint_into_q_model(model, checkpoint_path, device, logger):
@@ -74,10 +73,6 @@ def _log_model_metrics(logger, model, val_loaders, args, device):
         val_metrics = validate_metrics(model, loader, args.scale, device, 1.0)
         logger.log_validation_results(dataset_name, val_metrics)
 
-    suffix = f"-C{args.shared_subnet_channels}"
-    for dataset_name, loader in val_loaders.items():
-        subnet_metrics = validate_metrics_shared_channel(model, loader, args.scale, device, args.shared_subnet_channels, 1.0)
-        logger.log_validation_results(f"{dataset_name}{suffix}", subnet_metrics)
 
 def main():
 
@@ -153,8 +148,7 @@ def main():
     for epoch in range(args.epochs):
         # 训练
         val_loss = 0.0
-        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema, subnet_channels=args.shared_subnet_channels, \
-        shared_full_epochs=args.shared_full_epochs)
+        train_loss = train_epoch(model, train_loader, loss_func, optimizer, device, epoch, ema=ema)
 
         current_lr = optimizer.param_groups[0]['lr']
         

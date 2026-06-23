@@ -3,16 +3,14 @@ python train.py \
   --scale 2 \
   --channel_nums 32 \
   --num_blocks 5 \
-  --epochs 200 \
+  --epochs 150 \
   --batch_size 64 \
-  --lr 1.5e-3 \
+  --lr 2e-3 \
   --minlr 5e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
-  --patch_size 72 \
-  --warmup_epochs 20 \
-  --ema_decay 0.999 \
-  --shared_subnet_channels 16 \
-  --shared_full_epochs 40
+  --patch_size 144 \
+  --warmup_epochs 10 \
+  --ema_decay 0.999
