@@ -1,7 +1,6 @@
 import torch
 from tqdm import tqdm
 from utils import metrics
-from models import bilinear_interpolation
 import torch.nn.functional as F
 
 

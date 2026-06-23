@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn.functional as F
 
-from models import DPSR, QDPSR, bilinear_interpolation
+from models import DPSR, QDPSR
 from utils import create_val_loader, metrics
 from utils.arm_test_parser import arm_test_parser
 
@@ -45,18 +45,18 @@ class ARMSRFrame:
         return starts
 
     def _patch_smooth_score(self, patch):
-        if patch.shape[1] == 3:
-            y = 0.299 * patch[:, 0:1] + 0.587 * patch[:, 1:2] + 0.114 * patch[:, 2:3]
-        else:
-            y = patch[:, 0:1]
+        y = 0.299 * patch[:, 0:1] + 0.587 * patch[:, 1:2] + 0.114 * patch[:, 2:3]
         lap = F.conv2d(y, self.laplace_kernel, padding=1)
         return lap.abs().mean().item()
 
     def infer(self, lr_img):
-        _, channels, lr_h, lr_w = lr_img.shape
+        batch_size, channels, lr_h, lr_w = lr_img.shape
+        if batch_size != 1 or channels != 3:
+            raise ValueError(f'ARMSR expects a single RGB image, got shape {tuple(lr_img.shape)}')
+
         hr_h, hr_w = lr_h * self.scale, lr_w * self.scale
-        accum = torch.zeros(1, channels, hr_h, hr_w, device=self.device)
-        weight = torch.zeros(1, 1, hr_h, hr_w, device=self.device)
+        accum = torch.zeros_like(F.interpolate(lr_img, scale_factor=self.scale, mode='nearest'))
+        weight = torch.zeros_like(accum)
 
         total_patches = 0
         enhanced_patches = 0
@@ -83,7 +83,12 @@ class ARMSRFrame:
                     score_sum += score
                     total_patches += 1
 
-                    base = bilinear_interpolation(lr_patch, self.scale, bit8=True)
+                    base = F.interpolate(
+                        lr_patch,
+                        scale_factor=self.scale,
+                        mode='bilinear',
+                        align_corners=False,
+                    ).round().clamp(0, 255)
                     if self._use_residual_model(score):
                         branch_usage["model"] += 1
                         residual = self._infer_residual(lr_patch)
@@ -116,7 +121,7 @@ def build_residual_model(args, device):
     if args.branch_model == "DPSR":
         model = DPSR(
             scale=args.scale,
-            in_dim=args.in_channels,
+            in_dim=3,
             fea_dim=args.channel_nums,
             num_blocks=args.num_blocks,
             bias=False,
@@ -125,7 +130,7 @@ def build_residual_model(args, device):
     else:
         model = QDPSR(
             scale=args.scale,
-            in_dim=args.in_channels,
+            in_dim=3,
             fea_dim=args.channel_nums,
             num_blocks=args.num_blocks,
             bias=False,
@@ -205,11 +210,11 @@ def main():
     )
 
     val_loaders = {
-        "Set5": create_val_loader(os.path.join(args.val_root, "Set5"), args.scale, in_channels=args.in_channels),
-        # "Set14": create_val_loader(os.path.join(args.val_root, "Set14"), args.scale, in_channels=args.in_channels),
-        # "B100": create_val_loader(os.path.join(args.val_root, "B100"), args.scale, in_channels=args.in_channels),
-        # "U100": create_val_loader(os.path.join(args.val_root, "U100"), args.scale, in_channels=args.in_channels),
-        # "M109": create_val_loader(os.path.join(args.val_root, "M109"), args.scale, in_channels=args.in_channels),
+        "Set5": create_val_loader(os.path.join(args.val_root, "Set5"), args.scale, in_channels=3),
+        # "Set14": create_val_loader(os.path.join(args.val_root, "Set14"), args.scale, in_channels=3),
+        # "B100": create_val_loader(os.path.join(args.val_root, "B100"), args.scale, in_channels=3),
+        # "U100": create_val_loader(os.path.join(args.val_root, "U100"), args.scale, in_channels=3),
+        # "M109": create_val_loader(os.path.join(args.val_root, "M109"), args.scale, in_channels=3),
     }
 
     for dataset_name, loader in val_loaders.items():
