@@ -44,8 +44,7 @@ class DPSR(nn.Module):
         self.bias = bias
         self.fea_dim = fea_dim
 
-        self.head1 = nn.Conv2d(in_dim, in_dim, kernel_size=3, padding=1, bias=bias, groups=in_dim)
-        self.head2 = nn.Conv2d(in_dim, fea_dim, kernel_size=1, padding=0, bias=bias)      
+        self.head = nn.Conv2d(in_dim, fea_dim, kernel_size=3, padding=1, bias=bias)    
 
         self.body = nn.ModuleList()
         for _ in range(num_blocks):
@@ -58,8 +57,7 @@ class DPSR(nn.Module):
         
     def forward(self, x):
         
-        y = self.head1(x)
-        y = self.head2(y)
+        y = self.head(x)
         
         for i in range(len(self.body)):
             y = self.body[i](y)
@@ -73,8 +71,7 @@ class DPSR(nn.Module):
     def param_num(self):
         
         total = 0
-        total += sum(p.numel() for p in self.head1.parameters())
-        total += sum(p.numel() for p in self.head2.parameters())       
+        total += sum(p.numel() for p in self.head.parameters()) 
 
         for i in range(len(self.body)):
             total += self.body[i].param_num()

@@ -26,14 +26,9 @@ class ARMSRFrame:
         self.stride = patch_size - overlap
         if self.stride <= 0:
             raise ValueError("arm_overlap 必须小于 arm_patch_size")
-        lap = torch.tensor([[0.0, 1.0, 0.0], [1.0, -4.0, 1.0], [0.0, 1.0, 0.0]], device=device)
+        lap = torch.tensor([[0.0, 0.25, 0.0], [0.25, -1.0, 0.25], [0.0, 0.25, 0.0]], device=device)
         self.laplace_kernel = lap.view(1, 1, 3, 3)
 
-    def _use_residual_model(self, score):
-        return score >= self.threshold
-
-    def _infer_residual(self, lr_patch):
-        return self.residual_model(lr_patch / 255.0) * 255.0
 
     def _starts(self, length):
         if length <= self.patch_size:
@@ -83,15 +78,10 @@ class ARMSRFrame:
                     score_sum += score
                     total_patches += 1
 
-                    base = F.interpolate(
-                        lr_patch,
-                        scale_factor=self.scale,
-                        mode='bilinear',
-                        align_corners=False,
-                    ).round().clamp(0, 255)
-                    if self._use_residual_model(score):
+                    base = F.interpolate(lr_patch, scale_factor=self.scale, mode='bilinear', align_corners=False).round().clamp(0, 255)
+                    if score >= self.threshold:
                         branch_usage["model"] += 1
-                        residual = self._infer_residual(lr_patch)
+                        residual = self.residual_model(lr_patch / 255.0) * 255.0
                         sr_patch = (base + residual).round().clamp(0, 255)
                         enhanced_patches += 1
                     else:
@@ -117,29 +107,15 @@ class ARMSRFrame:
         return sr_img, stats
 
 
-def build_residual_model(args, device):
-    if args.branch_model == "DPSR":
-        model = DPSR(
-            scale=args.scale,
-            in_dim=3,
-            fea_dim=args.channel_nums,
-            num_blocks=args.num_blocks,
-            bias=False,
-        ).to(device)
-        default_ckpt = "./checkpoints/DPSR_x2_0323_1456.pth"
-    else:
-        model = QDPSR(
-            scale=args.scale,
-            in_dim=3,
-            fea_dim=args.channel_nums,
-            num_blocks=args.num_blocks,
-            bias=False,
-            weight_bitwidth=args.w_bits,
-            activation_bitwidth=args.a_bits,
-        ).to(device)
-        default_ckpt = "./checkpoints/QDPSR_x2_0323_1639.pth"
-
-    checkpoint_path = args.checkpoint if args.checkpoint else default_ckpt
+def build_residual_model(args, device):  
+    model = DPSR(
+        scale=args.scale,
+        in_dim=3,
+        fea_dim=args.channel_nums,
+        num_blocks=args.num_blocks,
+        bias=False,
+    ).to(device)
+    checkpoint_path = "./checkpoints/DPSR_x2_0729_1531.pth"
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model_state_dict = checkpoint.get("model_state_dict", checkpoint)
     model.load_state_dict(model_state_dict)
@@ -210,11 +186,7 @@ def main():
     )
 
     val_loaders = {
-        "Set5": create_val_loader(os.path.join(args.val_root, "Set5"), args.scale, in_channels=3),
-        # "Set14": create_val_loader(os.path.join(args.val_root, "Set14"), args.scale, in_channels=3),
-        # "B100": create_val_loader(os.path.join(args.val_root, "B100"), args.scale, in_channels=3),
-        # "U100": create_val_loader(os.path.join(args.val_root, "U100"), args.scale, in_channels=3),
-        # "M109": create_val_loader(os.path.join(args.val_root, "M109"), args.scale, in_channels=3),
+        "Set5": create_val_loader(os.path.join(args.val_root, "Set5"), args.scale, in_channels=3)
     }
 
     for dataset_name, loader in val_loaders.items():
