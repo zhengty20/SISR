@@ -2,12 +2,11 @@ import os
 import torch
 import torch.nn.functional as F
 
-from models import DPSR, QDPSR
-from utils import create_val_loader, metrics
-from utils.arm_test_parser import arm_test_parser
+from models import DPSR
+from utils import create_val_loader, metrics, final_test_parser
 
 
-class ARMSRFrame:
+class DPSRFrame:
     def __init__(
         self,
         residual_model,
@@ -16,17 +15,26 @@ class ARMSRFrame:
         overlap,
         threshold,
         device,
+        subnet_threshold=None,
+        subnet_width_mult=0.5,
     ):
         self.residual_model = residual_model
         self.scale = scale
         self.patch_size = patch_size
         self.overlap = overlap
-        self.threshold = threshold
+        self.full_threshold = float(threshold)
+        self.subnet_threshold = (
+            self.full_threshold if subnet_threshold is None else float(subnet_threshold)
+        )
+        self.subnet_width_mult = float(subnet_width_mult)
         self.device = device
         self.stride = patch_size - overlap
         if self.stride <= 0:
             raise ValueError("arm_overlap 必须小于 arm_patch_size")
-        lap = torch.tensor([[0.0, 0.25, 0.0], [0.25, -1.0, 0.25], [0.0, 0.25, 0.0]], device=device)
+        if self.subnet_threshold > self.full_threshold:
+            raise ValueError("arm_subnet_threshold 必须小于或等于 arm_threshold")
+        # lap = 0.25 * torch.tensor([[0.0, 1, 0.0], [1, -4, 1], [0.0, 1, 0.0]], device=device)
+        lap = 0.125 * torch.tensor([[-1., -1., -1.], [-1., 8., -1.], [-1., -1., -1.]], device=device)
         self.laplace_kernel = lap.view(1, 1, 3, 3)
 
 
@@ -56,7 +64,7 @@ class ARMSRFrame:
         total_patches = 0
         enhanced_patches = 0
         score_sum = 0.0
-        branch_usage = {"bilinear": 0, "model": 0}
+        branch_usage = {"bicubic": 0, "compressed_nn": 0, "full_nn": 0}
 
         h_starts = self._starts(lr_h)
         w_starts = self._starts(lr_w)
@@ -78,14 +86,23 @@ class ARMSRFrame:
                     score_sum += score
                     total_patches += 1
 
-                    base = F.interpolate(lr_patch, scale_factor=self.scale, mode='bilinear', align_corners=False).round().clamp(0, 255)
-                    if score >= self.threshold:
-                        branch_usage["model"] += 1
-                        residual = self.residual_model(lr_patch / 255.0) * 255.0
+                    base = F.interpolate(lr_patch, scale_factor=self.scale, mode='bicubic', align_corners=False).round().clamp(0, 255)
+                    if score >= self.full_threshold:
+                        branch_usage["full_nn"] += 1
+                        residual = self.residual_model(
+                            lr_patch / 255.0, width_mult=1.0
+                        ) * 255.0
+                        sr_patch = (base + residual).round().clamp(0, 255)
+                        enhanced_patches += 1
+                    elif score >= self.subnet_threshold:
+                        branch_usage["compressed_nn"] += 1
+                        residual = self.residual_model(
+                            lr_patch / 255.0, width_mult=self.subnet_width_mult
+                        ) * 255.0
                         sr_patch = (base + residual).round().clamp(0, 255)
                         enhanced_patches += 1
                     else:
-                        branch_usage["bilinear"] += 1
+                        branch_usage["bicubic"] += 1
                         sr_patch = base.clamp(0, 255)
 
                     hr_top = top * self.scale
@@ -114,11 +131,12 @@ def build_residual_model(args, device):
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
+        subnet_expand_block=args.subnet_expand_block,
     ).to(device)
-    checkpoint_path = "./checkpoints/DPSR_x2_0729_1531.pth"
+    checkpoint_path = args.checkpoint
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model_state_dict = checkpoint.get("model_state_dict", checkpoint)
-    model.load_state_dict(model_state_dict)
+    model.load_state_dict(model_state_dict, strict=True)
     model.eval()
     return model
 
@@ -173,16 +191,26 @@ def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
 
 
 def main():
-    args = arm_test_parser()
+    args = final_test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    if args.arm_subnet_threshold >= args.arm_threshold:
+        raise ValueError("arm_subnet_threshold 必须严格小于 arm_threshold，才能形成三段路由")
+
     residual_model = build_residual_model(args, device)
-    frame = ARMSRFrame(
+    frame = DPSRFrame(
         residual_model=residual_model,
         scale=args.scale,
         patch_size=args.arm_patch_size,
         overlap=args.arm_overlap,
         threshold=args.arm_threshold,
         device=device,
+        subnet_threshold=args.arm_subnet_threshold,
+        subnet_width_mult=args.arm_subnet_width_mult,
+    )
+
+    print(
+        f"Routing: bicubic < {args.arm_subnet_threshold:g} <= compressed_nn < "
+        f"{args.arm_threshold:g} <= full_nn; compressed_width={args.arm_subnet_width_mult:g}; expand_block={args.subnet_expand_block}"
     )
 
     val_loaders = {
@@ -193,7 +221,7 @@ def main():
         result, stat = validate_arm_metrics(frame, loader, args.scale, device, args.clip_ratio)
         print(
             f'{dataset_name}: PSNR: {result["psnr"]:.2f}, SSIM: {result["ssim"]:.4f}, '
-            f'EnhPatch: {stat["enhanced_ratio"] * 100:.2f}% ({stat["enhanced_patches"]}/{stat["total_patches"]}), '
+            f'NNPatch: {stat["enhanced_ratio"] * 100:.2f}% ({stat["enhanced_patches"]}/{stat["total_patches"]}), '
             f'LapMean: {stat["avg_laplace_score"]:.4f}'
         )
         usage_text = ", ".join([f"{branch}:{cnt}" for branch, cnt in sorted(stat["branch_usage"].items())])

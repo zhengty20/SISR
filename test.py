@@ -130,6 +130,7 @@ def plot_distribution(name, tensor, core_xlim=(-0.3, 0.3), output_dir=OUTPUT_DIR
         print(f'Skipped distribution plot for {name}: {exc.name} is not installed.')
         return
 
+    plt.rcParams["font.family"] = "Arial"
     values = tensor.numpy().astype(np.float32).reshape(-1)
     x_min, x_max = robust_xlim(values)
 
@@ -140,21 +141,21 @@ def plot_distribution(name, tensor, core_xlim=(-0.3, 0.3), output_dir=OUTPUT_DIR
         core = values
         core_xlim = (float(values.min()), float(values.max()))
 
-    fig, ax = plt.subplots(figsize=(5.6, 4.4))
+    fig, ax = plt.subplots(figsize=(4.2, 3.45))
 
     color = "#3c973b"
     xs, ys = smooth_hist(core, bins=140, xlim=core_xlim)
     ax.fill_between(xs, ys, color=color, alpha=0.35, linewidth=0)
-    ax.plot(xs, ys, color=color, linewidth=2.2)
+    ax.plot(xs, ys, color=color, linewidth=3)
 
-    ax.axvline(0, color='black', linewidth=1.0, alpha=0.8)
+    ax.axvline(0, color='black', linewidth=1.0, alpha=0.65)
 
     ax.set_xlim(*core_xlim)
-    ax.set_xlabel('Activation value', fontsize=10)
-    ax.set_ylabel('Density', fontsize=10)
-    ax.tick_params(labelsize=9)
+    ax.set_xlabel('Activation value', fontsize=22, labelpad=4, fontweight="bold")
+    ax.set_ylabel('Density', fontsize=22, labelpad=4, fontweight="bold")
+    ax.tick_params(labelsize=20)
 
-    ax.grid(visible=True, axis='y', color='gray', linestyle='--', linewidth=0.45, alpha=0.45)
+    ax.grid(visible=True, axis='y', color='gray', linestyle='--', linewidth=1, alpha=0.65)
     ax.grid(visible=False, axis='x')
 
     ax.spines['top'].set_visible(False)
@@ -183,42 +184,94 @@ def plot_layer_inputs(layer_inputs):
         plot_distribution(name, tensor)
 
 
-def _build_val_loaders(scale, in_channels):
+def _build_val_loaders(scale, in_channels, val_root, datasets):
     return {
-        'Set5': create_val_loader('/home/tyzheng/Datasets_pt/val/Set5', scale, in_channels=in_channels),
-        # 'Set14': create_val_loader('/home/tyzheng/Datasets_pt/val/Set14', scale, in_channels=in_channels),
-        # 'B100': create_val_loader('/home/tyzheng/Datasets_pt/val/B100', scale, in_channels=in_channels),
-        # 'U100': create_val_loader('/home/tyzheng/Datasets_pt/val/U100', scale, in_channels=in_channels),
-        # 'M109': create_val_loader('/home/tyzheng/Datasets_pt/val/M109', scale, in_channels=in_channels),
+        dataset_name: create_val_loader(
+            str(Path(val_root) / dataset_name), scale, in_channels=in_channels
+        )
+        for dataset_name in datasets
     }
 
 
-def _print_metrics(loaders, metric_fn, name_suffix=''):
+def _print_width_metrics(model, loaders, args, device):
     for dataset_name, loader in loaders.items():
-        result = metric_fn(loader)
-        label = f'{dataset_name}{name_suffix}'
-        print(f'{label}: PSNR: {result["psnr"]:.2f}, SSIM: {result["ssim"]:.4f}')
+        for active_num_blocks in args.block_nums:
+            width_results = {}
+            for width_mult in args.width_mults:
+                result = validate_metrics(
+                    model,
+                    loader,
+                    args.scale,
+                    device,
+                    1.0,
+                    is_residual=True,
+                    width_mult=width_mult,
+                    active_num_blocks=active_num_blocks,
+                )
+                width_results[width_mult] = result
+                if width_mult == 1.0:
+                    width_description = f'channels={args.channel_nums}'
+                else:
+                    width_description = (
+                        f'head_channels={args.channel_nums // 2}, '
+                        f'expand_block={args.subnet_expand_block}'
+                    )
+                print(
+                    f'{dataset_name} | blocks={active_num_blocks} | '
+                    f'width={width_mult:.1f} | {width_description}: '
+                    f'PSNR={result["psnr"]:.4f} dB, SSIM={result["ssim"]:.6f}'
+                )
+
+            if 1.0 in width_results:
+                full_result = width_results[1.0]
+                for width_mult, result in width_results.items():
+                    if width_mult == 1.0:
+                        continue
+                    print(
+                        f'{dataset_name} | blocks={active_num_blocks} | '
+                        f'width={width_mult:.1f} vs full: '
+                        f'PSNR_delta={result["psnr"] - full_result["psnr"]:+.4f} dB, '
+                        f'SSIM_delta={result["ssim"] - full_result["ssim"]:+.6f}'
+                    )
 
 
 if __name__ == '__main__':
 
     args = test_parser()
+    args.block_nums = tuple(sorted(set(int(depth) for depth in args.block_nums)))
+    if not args.block_nums or any(depth < 1 or depth > args.num_blocks for depth in args.block_nums):
+        raise ValueError(f'--block_nums must be in [1, {args.num_blocks}], got {args.block_nums}')
+    if 0.5 in args.width_mults and args.subnet_expand_block > min(args.block_nums):
+        raise ValueError('--subnet_expand_block must not exceed the smallest tested depth')
     device = torch.device(args.device if torch.cuda.is_available() else 'cpu')
 
-    net = DPSR(scale=args.scale, in_dim=args.in_channels, fea_dim=args.channel_nums, num_blocks=args.num_blocks, bias=False).to(device)
-    checkpoint = torch.load("./checkpoints/DPSR_x2_0607_1913.pth", map_location=device, weights_only=False)
+    net = DPSR(
+        scale=args.scale,
+        in_dim=args.in_channels,
+        fea_dim=args.channel_nums,
+        num_blocks=args.num_blocks,
+        bias=False,
+        subnet_expand_block=args.subnet_expand_block,
+    ).to(device)
+    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
-    net.load_state_dict(model_state_dict)
+    net.load_state_dict(model_state_dict, strict=True)
     net.eval()
-    collector = InputDistributionCollector(net, dump_layers=DUMP_LAYERS)
-    print(f'Distribution plots will be saved to: {OUTPUT_DIR}')
+    collector = InputDistributionCollector(net, dump_layers=DUMP_LAYERS) if args.collect_distributions else None
+    print(f'Checkpoint: {args.checkpoint}')
+    print(f'Device: {device}')
+    if collector is not None:
+        print(f'Distribution plots will be saved to: {OUTPUT_DIR}')
 
-    val_loaders = _build_val_loaders(args.scale, args.in_channels)
-
-    _print_metrics(
-        loaders=val_loaders,
-        metric_fn=lambda loader: validate_metrics(net, loader, args.scale, device, 1.0),
+    val_loaders = _build_val_loaders(
+        args.scale,
+        args.in_channels,
+        args.val_root,
+        args.datasets,
     )
-    collector.close()
-    collector.print()
-    plot_layer_inputs(collector.plot_inputs)
+
+    _print_width_metrics(net, val_loaders, args, device)
+    if collector is not None:
+        collector.close()
+        collector.print()
+        plot_layer_inputs(collector.plot_inputs)

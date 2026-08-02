@@ -1,0 +1,1331 @@
+使用设备: cuda
+Loaded full-width checkpoint: ./checkpoints/DPSR_x2_0801_1611.pth
+模型总参数量: 13,600
+==================================================
+Training Started
+==================================================
+实验名称: DPSR_x2_0801_2318
+放大倍数: 2
+批次大小: 64
+学习率: 0.0005
+最小学习率: 2e-05
+训练轮数: 100
+设备: cuda
+模型参数数量: 13,600
+训练批次: 1110
+==================================================
+Begin Training
+Epoch 1/100: Training loss=0.020873, lr=3.00e-04
+Epoch 1/100: Validation combined_loss=0.025773, full_loss=0.024624, subnet_loss(width=0.5,x=3)=0.026922
+Set5: PSNR(Y)=37.235, SSIM(Y)=0.9574
+Set14: PSNR(Y)=32.865, SSIM(Y)=0.9102
+B100: PSNR(Y)=31.655, SSIM(Y)=0.8925
+U100: PSNR(Y)=30.238, SSIM(Y)=0.9071
+M109: PSNR(Y)=36.682, SSIM(Y)=0.9713
+Set5/subnet-0.5-x3: PSNR(Y)=36.552, SSIM(Y)=0.9543
+Set14/subnet-0.5-x3: PSNR(Y)=32.387, SSIM(Y)=0.9057
+B100/subnet-0.5-x3: PSNR(Y)=31.228, SSIM(Y)=0.8866
+U100/subnet-0.5-x3: PSNR(Y)=29.169, SSIM(Y)=0.8916
+M109/subnet-0.5-x3: PSNR(Y)=35.234, SSIM(Y)=0.9658
+Model saved! Best loss: 0.025773
+Epoch 2/100: Training loss=0.020231, lr=3.13e-04
+Epoch 2/100: Validation combined_loss=0.025498, full_loss=0.024600, subnet_loss(width=0.5,x=3)=0.026396
+Set5: PSNR(Y)=37.258, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.878, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.661, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.240, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.707, SSIM(Y)=0.9714
+Set5/subnet-0.5-x3: PSNR(Y)=36.752, SSIM(Y)=0.9553
+Set14/subnet-0.5-x3: PSNR(Y)=32.504, SSIM(Y)=0.9068
+B100/subnet-0.5-x3: PSNR(Y)=31.326, SSIM(Y)=0.8879
+U100/subnet-0.5-x3: PSNR(Y)=29.396, SSIM(Y)=0.8951
+M109/subnet-0.5-x3: PSNR(Y)=35.581, SSIM(Y)=0.9673
+Model saved! Best loss: 0.025498
+Epoch 3/100: Training loss=0.020102, lr=3.27e-04
+Epoch 3/100: Validation combined_loss=0.025362, full_loss=0.024582, subnet_loss(width=0.5,x=3)=0.026143
+Set5: PSNR(Y)=37.259, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.884, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8927
+U100: PSNR(Y)=30.244, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.727, SSIM(Y)=0.9715
+Set5/subnet-0.5-x3: PSNR(Y)=36.852, SSIM(Y)=0.9558
+Set14/subnet-0.5-x3: PSNR(Y)=32.558, SSIM(Y)=0.9074
+B100/subnet-0.5-x3: PSNR(Y)=31.373, SSIM(Y)=0.8886
+U100/subnet-0.5-x3: PSNR(Y)=29.508, SSIM(Y)=0.8969
+M109/subnet-0.5-x3: PSNR(Y)=35.747, SSIM(Y)=0.9679
+Model saved! Best loss: 0.025362
+Epoch 4/100: Training loss=0.020037, lr=3.40e-04
+Epoch 4/100: Validation combined_loss=0.025269, full_loss=0.024570, subnet_loss(width=0.5,x=3)=0.025969
+Set5: PSNR(Y)=37.267, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.880, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.246, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.742, SSIM(Y)=0.9715
+Set5/subnet-0.5-x3: PSNR(Y)=36.911, SSIM(Y)=0.9561
+Set14/subnet-0.5-x3: PSNR(Y)=32.591, SSIM(Y)=0.9078
+B100/subnet-0.5-x3: PSNR(Y)=31.405, SSIM(Y)=0.8891
+U100/subnet-0.5-x3: PSNR(Y)=29.588, SSIM(Y)=0.8981
+M109/subnet-0.5-x3: PSNR(Y)=35.863, SSIM(Y)=0.9684
+Model saved! Best loss: 0.025269
+Epoch 5/100: Training loss=0.019995, lr=3.53e-04
+Epoch 5/100: Validation combined_loss=0.025200, full_loss=0.024561, subnet_loss(width=0.5,x=3)=0.025839
+Set5: PSNR(Y)=37.270, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.884, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.666, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.247, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.748, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=36.954, SSIM(Y)=0.9563
+Set14/subnet-0.5-x3: PSNR(Y)=32.617, SSIM(Y)=0.9080
+B100/subnet-0.5-x3: PSNR(Y)=31.430, SSIM(Y)=0.8895
+U100/subnet-0.5-x3: PSNR(Y)=29.647, SSIM(Y)=0.8990
+M109/subnet-0.5-x3: PSNR(Y)=35.945, SSIM(Y)=0.9687
+Model saved! Best loss: 0.025200
+Epoch 6/100: Training loss=0.019946, lr=3.67e-04
+Epoch 6/100: Validation combined_loss=0.025147, full_loss=0.024554, subnet_loss(width=0.5,x=3)=0.025740
+Set5: PSNR(Y)=37.276, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.883, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.250, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.755, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=36.991, SSIM(Y)=0.9564
+Set14/subnet-0.5-x3: PSNR(Y)=32.635, SSIM(Y)=0.9082
+B100/subnet-0.5-x3: PSNR(Y)=31.450, SSIM(Y)=0.8898
+U100/subnet-0.5-x3: PSNR(Y)=29.696, SSIM(Y)=0.8997
+M109/subnet-0.5-x3: PSNR(Y)=36.010, SSIM(Y)=0.9689
+Model saved! Best loss: 0.025147
+Epoch 7/100: Training loss=0.019932, lr=3.80e-04
+Epoch 7/100: Validation combined_loss=0.025107, full_loss=0.024552, subnet_loss(width=0.5,x=3)=0.025662
+Set5: PSNR(Y)=37.280, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.884, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.251, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.760, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.020, SSIM(Y)=0.9565
+Set14/subnet-0.5-x3: PSNR(Y)=32.650, SSIM(Y)=0.9084
+B100/subnet-0.5-x3: PSNR(Y)=31.466, SSIM(Y)=0.8901
+U100/subnet-0.5-x3: PSNR(Y)=29.734, SSIM(Y)=0.9003
+M109/subnet-0.5-x3: PSNR(Y)=36.056, SSIM(Y)=0.9691
+Model saved! Best loss: 0.025107
+Epoch 8/100: Training loss=0.019850, lr=3.93e-04
+Epoch 8/100: Validation combined_loss=0.025077, full_loss=0.024553, subnet_loss(width=0.5,x=3)=0.025601
+Set5: PSNR(Y)=37.282, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.885, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.251, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.761, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.041, SSIM(Y)=0.9565
+Set14/subnet-0.5-x3: PSNR(Y)=32.662, SSIM(Y)=0.9085
+B100/subnet-0.5-x3: PSNR(Y)=31.478, SSIM(Y)=0.8903
+U100/subnet-0.5-x3: PSNR(Y)=29.765, SSIM(Y)=0.9007
+M109/subnet-0.5-x3: PSNR(Y)=36.086, SSIM(Y)=0.9692
+Model saved! Best loss: 0.025077
+Epoch 9/100: Training loss=0.019848, lr=4.07e-04
+Epoch 9/100: Validation combined_loss=0.025049, full_loss=0.024552, subnet_loss(width=0.5,x=3)=0.025546
+Set5: PSNR(Y)=37.281, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.667, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.251, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.767, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.058, SSIM(Y)=0.9566
+Set14/subnet-0.5-x3: PSNR(Y)=32.673, SSIM(Y)=0.9086
+B100/subnet-0.5-x3: PSNR(Y)=31.487, SSIM(Y)=0.8904
+U100/subnet-0.5-x3: PSNR(Y)=29.788, SSIM(Y)=0.9010
+M109/subnet-0.5-x3: PSNR(Y)=36.116, SSIM(Y)=0.9693
+Model saved! Best loss: 0.025049
+Epoch 10/100: Training loss=0.019848, lr=4.20e-04
+Epoch 10/100: Validation combined_loss=0.025025, full_loss=0.024556, subnet_loss(width=0.5,x=3)=0.025494
+Set5: PSNR(Y)=37.280, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.251, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.765, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.069, SSIM(Y)=0.9567
+Set14/subnet-0.5-x3: PSNR(Y)=32.679, SSIM(Y)=0.9086
+B100/subnet-0.5-x3: PSNR(Y)=31.495, SSIM(Y)=0.8906
+U100/subnet-0.5-x3: PSNR(Y)=29.805, SSIM(Y)=0.9012
+M109/subnet-0.5-x3: PSNR(Y)=36.141, SSIM(Y)=0.9694
+Model saved! Best loss: 0.025025
+Epoch 11/100: Training loss=0.019828, lr=4.33e-04
+Epoch 11/100: Validation combined_loss=0.025003, full_loss=0.024560, subnet_loss(width=0.5,x=3)=0.025445
+Set5: PSNR(Y)=37.279, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.889, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.766, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.078, SSIM(Y)=0.9567
+Set14/subnet-0.5-x3: PSNR(Y)=32.686, SSIM(Y)=0.9087
+B100/subnet-0.5-x3: PSNR(Y)=31.502, SSIM(Y)=0.8907
+U100/subnet-0.5-x3: PSNR(Y)=29.817, SSIM(Y)=0.9014
+M109/subnet-0.5-x3: PSNR(Y)=36.167, SSIM(Y)=0.9694
+Model saved! Best loss: 0.025003
+Epoch 12/100: Training loss=0.019766, lr=4.47e-04
+Epoch 12/100: Validation combined_loss=0.024981, full_loss=0.024563, subnet_loss(width=0.5,x=3)=0.025399
+Set5: PSNR(Y)=37.280, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.890, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.763, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.091, SSIM(Y)=0.9568
+Set14/subnet-0.5-x3: PSNR(Y)=32.694, SSIM(Y)=0.9087
+B100/subnet-0.5-x3: PSNR(Y)=31.508, SSIM(Y)=0.8908
+U100/subnet-0.5-x3: PSNR(Y)=29.832, SSIM(Y)=0.9016
+M109/subnet-0.5-x3: PSNR(Y)=36.185, SSIM(Y)=0.9695
+Model saved! Best loss: 0.024981
+Epoch 13/100: Training loss=0.019775, lr=4.60e-04
+Epoch 13/100: Validation combined_loss=0.024960, full_loss=0.024563, subnet_loss(width=0.5,x=3)=0.025356
+Set5: PSNR(Y)=37.279, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.663, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.760, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.104, SSIM(Y)=0.9569
+Set14/subnet-0.5-x3: PSNR(Y)=32.700, SSIM(Y)=0.9088
+B100/subnet-0.5-x3: PSNR(Y)=31.515, SSIM(Y)=0.8909
+U100/subnet-0.5-x3: PSNR(Y)=29.846, SSIM(Y)=0.9018
+M109/subnet-0.5-x3: PSNR(Y)=36.203, SSIM(Y)=0.9696
+Model saved! Best loss: 0.024960
+Epoch 14/100: Training loss=0.019795, lr=4.73e-04
+Epoch 14/100: Validation combined_loss=0.024940, full_loss=0.024562, subnet_loss(width=0.5,x=3)=0.025317
+Set5: PSNR(Y)=37.280, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.885, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.662, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.758, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.116, SSIM(Y)=0.9569
+Set14/subnet-0.5-x3: PSNR(Y)=32.707, SSIM(Y)=0.9089
+B100/subnet-0.5-x3: PSNR(Y)=31.521, SSIM(Y)=0.8910
+U100/subnet-0.5-x3: PSNR(Y)=29.860, SSIM(Y)=0.9021
+M109/subnet-0.5-x3: PSNR(Y)=36.219, SSIM(Y)=0.9696
+Model saved! Best loss: 0.024940
+Epoch 15/100: Training loss=0.019770, lr=4.87e-04
+Epoch 15/100: Validation combined_loss=0.024923, full_loss=0.024562, subnet_loss(width=0.5,x=3)=0.025283
+Set5: PSNR(Y)=37.279, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.662, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.754, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.126, SSIM(Y)=0.9569
+Set14/subnet-0.5-x3: PSNR(Y)=32.714, SSIM(Y)=0.9089
+B100/subnet-0.5-x3: PSNR(Y)=31.526, SSIM(Y)=0.8910
+U100/subnet-0.5-x3: PSNR(Y)=29.873, SSIM(Y)=0.9022
+M109/subnet-0.5-x3: PSNR(Y)=36.237, SSIM(Y)=0.9697
+Model saved! Best loss: 0.024923
+Epoch 16/100: Training loss=0.019741, lr=5.00e-04
+Epoch 16/100: Validation combined_loss=0.024906, full_loss=0.024559, subnet_loss(width=0.5,x=3)=0.025253
+Set5: PSNR(Y)=37.283, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.887, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.662, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.249, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.757, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.138, SSIM(Y)=0.9570
+Set14/subnet-0.5-x3: PSNR(Y)=32.720, SSIM(Y)=0.9090
+B100/subnet-0.5-x3: PSNR(Y)=31.532, SSIM(Y)=0.8911
+U100/subnet-0.5-x3: PSNR(Y)=29.884, SSIM(Y)=0.9024
+M109/subnet-0.5-x3: PSNR(Y)=36.256, SSIM(Y)=0.9698
+Model saved! Best loss: 0.024906
+Epoch 17/100: Training loss=0.019723, lr=5.00e-04
+Epoch 17/100: Validation combined_loss=0.024891, full_loss=0.024558, subnet_loss(width=0.5,x=3)=0.025225
+Set5: PSNR(Y)=37.285, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.889, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.663, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.248, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.760, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.149, SSIM(Y)=0.9570
+Set14/subnet-0.5-x3: PSNR(Y)=32.727, SSIM(Y)=0.9090
+B100/subnet-0.5-x3: PSNR(Y)=31.536, SSIM(Y)=0.8912
+U100/subnet-0.5-x3: PSNR(Y)=29.894, SSIM(Y)=0.9025
+M109/subnet-0.5-x3: PSNR(Y)=36.274, SSIM(Y)=0.9698
+Model saved! Best loss: 0.024891
+Epoch 18/100: Training loss=0.019691, lr=4.99e-04
+Epoch 18/100: Validation combined_loss=0.024880, full_loss=0.024558, subnet_loss(width=0.5,x=3)=0.025203
+Set5: PSNR(Y)=37.287, SSIM(Y)=0.9575
+Set14: PSNR(Y)=32.888, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.662, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.247, SSIM(Y)=0.9071
+M109: PSNR(Y)=36.758, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.158, SSIM(Y)=0.9570
+Set14/subnet-0.5-x3: PSNR(Y)=32.731, SSIM(Y)=0.9091
+B100/subnet-0.5-x3: PSNR(Y)=31.540, SSIM(Y)=0.8912
+U100/subnet-0.5-x3: PSNR(Y)=29.903, SSIM(Y)=0.9026
+M109/subnet-0.5-x3: PSNR(Y)=36.286, SSIM(Y)=0.9699
+Model saved! Best loss: 0.024880
+Epoch 19/100: Training loss=0.019717, lr=4.99e-04
+Epoch 19/100: Validation combined_loss=0.024868, full_loss=0.024555, subnet_loss(width=0.5,x=3)=0.025181
+Set5: PSNR(Y)=37.287, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.891, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.663, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.249, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.757, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.164, SSIM(Y)=0.9571
+Set14/subnet-0.5-x3: PSNR(Y)=32.738, SSIM(Y)=0.9091
+B100/subnet-0.5-x3: PSNR(Y)=31.543, SSIM(Y)=0.8912
+U100/subnet-0.5-x3: PSNR(Y)=29.912, SSIM(Y)=0.9028
+M109/subnet-0.5-x3: PSNR(Y)=36.299, SSIM(Y)=0.9699
+Model saved! Best loss: 0.024868
+Epoch 20/100: Training loss=0.019698, lr=4.97e-04
+Epoch 20/100: Validation combined_loss=0.024855, full_loss=0.024550, subnet_loss(width=0.5,x=3)=0.025159
+Set5: PSNR(Y)=37.289, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.893, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.663, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.251, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.758, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.170, SSIM(Y)=0.9571
+Set14/subnet-0.5-x3: PSNR(Y)=32.743, SSIM(Y)=0.9091
+B100/subnet-0.5-x3: PSNR(Y)=31.546, SSIM(Y)=0.8913
+U100/subnet-0.5-x3: PSNR(Y)=29.922, SSIM(Y)=0.9029
+M109/subnet-0.5-x3: PSNR(Y)=36.313, SSIM(Y)=0.9700
+Model saved! Best loss: 0.024855
+Epoch 21/100: Training loss=0.019673, lr=4.96e-04
+Epoch 21/100: Validation combined_loss=0.024843, full_loss=0.024545, subnet_loss(width=0.5,x=3)=0.025140
+Set5: PSNR(Y)=37.290, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.894, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.253, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.762, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.175, SSIM(Y)=0.9571
+Set14/subnet-0.5-x3: PSNR(Y)=32.747, SSIM(Y)=0.9092
+B100/subnet-0.5-x3: PSNR(Y)=31.550, SSIM(Y)=0.8913
+U100/subnet-0.5-x3: PSNR(Y)=29.930, SSIM(Y)=0.9030
+M109/subnet-0.5-x3: PSNR(Y)=36.326, SSIM(Y)=0.9700
+Model saved! Best loss: 0.024843
+Epoch 22/100: Training loss=0.019682, lr=4.94e-04
+Epoch 22/100: Validation combined_loss=0.024833, full_loss=0.024542, subnet_loss(width=0.5,x=3)=0.025124
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.892, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.664, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.253, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.765, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.180, SSIM(Y)=0.9571
+Set14/subnet-0.5-x3: PSNR(Y)=32.750, SSIM(Y)=0.9092
+B100/subnet-0.5-x3: PSNR(Y)=31.552, SSIM(Y)=0.8914
+U100/subnet-0.5-x3: PSNR(Y)=29.937, SSIM(Y)=0.9031
+M109/subnet-0.5-x3: PSNR(Y)=36.337, SSIM(Y)=0.9700
+Model saved! Best loss: 0.024833
+Epoch 23/100: Training loss=0.019668, lr=4.92e-04
+Epoch 23/100: Validation combined_loss=0.024824, full_loss=0.024538, subnet_loss(width=0.5,x=3)=0.025110
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.895, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.254, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.769, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.185, SSIM(Y)=0.9571
+Set14/subnet-0.5-x3: PSNR(Y)=32.753, SSIM(Y)=0.9092
+B100/subnet-0.5-x3: PSNR(Y)=31.554, SSIM(Y)=0.8914
+U100/subnet-0.5-x3: PSNR(Y)=29.943, SSIM(Y)=0.9032
+M109/subnet-0.5-x3: PSNR(Y)=36.349, SSIM(Y)=0.9701
+Model saved! Best loss: 0.024824
+Epoch 24/100: Training loss=0.019669, lr=4.90e-04
+Epoch 24/100: Validation combined_loss=0.024817, full_loss=0.024536, subnet_loss(width=0.5,x=3)=0.025098
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.895, SSIM(Y)=0.9104
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.255, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.772, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.187, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.755, SSIM(Y)=0.9092
+B100/subnet-0.5-x3: PSNR(Y)=31.556, SSIM(Y)=0.8914
+U100/subnet-0.5-x3: PSNR(Y)=29.948, SSIM(Y)=0.9032
+M109/subnet-0.5-x3: PSNR(Y)=36.361, SSIM(Y)=0.9701
+Model saved! Best loss: 0.024817
+Epoch 25/100: Training loss=0.019645, lr=4.87e-04
+Epoch 25/100: Validation combined_loss=0.024809, full_loss=0.024533, subnet_loss(width=0.5,x=3)=0.025086
+Set5: PSNR(Y)=37.296, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.898, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.666, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.256, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.772, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.188, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.760, SSIM(Y)=0.9093
+B100/subnet-0.5-x3: PSNR(Y)=31.559, SSIM(Y)=0.8915
+U100/subnet-0.5-x3: PSNR(Y)=29.955, SSIM(Y)=0.9033
+M109/subnet-0.5-x3: PSNR(Y)=36.370, SSIM(Y)=0.9701
+Model saved! Best loss: 0.024809
+Epoch 26/100: Training loss=0.019662, lr=4.84e-04
+Epoch 26/100: Validation combined_loss=0.024803, full_loss=0.024531, subnet_loss(width=0.5,x=3)=0.025075
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.665, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.257, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.772, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.188, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.763, SSIM(Y)=0.9093
+B100/subnet-0.5-x3: PSNR(Y)=31.560, SSIM(Y)=0.8915
+U100/subnet-0.5-x3: PSNR(Y)=29.960, SSIM(Y)=0.9034
+M109/subnet-0.5-x3: PSNR(Y)=36.382, SSIM(Y)=0.9702
+Model saved! Best loss: 0.024803
+Epoch 27/100: Training loss=0.019631, lr=4.80e-04
+Epoch 27/100: Validation combined_loss=0.024793, full_loss=0.024527, subnet_loss(width=0.5,x=3)=0.025059
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.666, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.257, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.776, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.189, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.768, SSIM(Y)=0.9093
+B100/subnet-0.5-x3: PSNR(Y)=31.562, SSIM(Y)=0.8915
+U100/subnet-0.5-x3: PSNR(Y)=29.969, SSIM(Y)=0.9035
+M109/subnet-0.5-x3: PSNR(Y)=36.396, SSIM(Y)=0.9702
+Model saved! Best loss: 0.024793
+Epoch 28/100: Training loss=0.019606, lr=4.77e-04
+Epoch 28/100: Validation combined_loss=0.024787, full_loss=0.024528, subnet_loss(width=0.5,x=3)=0.025046
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.666, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.257, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.774, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.190, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.771, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.565, SSIM(Y)=0.8915
+U100/subnet-0.5-x3: PSNR(Y)=29.977, SSIM(Y)=0.9037
+M109/subnet-0.5-x3: PSNR(Y)=36.406, SSIM(Y)=0.9703
+Model saved! Best loss: 0.024787
+Epoch 29/100: Training loss=0.019611, lr=4.73e-04
+Epoch 29/100: Validation combined_loss=0.024782, full_loss=0.024528, subnet_loss(width=0.5,x=3)=0.025036
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.667, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.256, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.774, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.190, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.774, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.567, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=29.983, SSIM(Y)=0.9038
+M109/subnet-0.5-x3: PSNR(Y)=36.417, SSIM(Y)=0.9703
+Model saved! Best loss: 0.024782
+Epoch 30/100: Training loss=0.019603, lr=4.69e-04
+Epoch 30/100: Validation combined_loss=0.024777, full_loss=0.024527, subnet_loss(width=0.5,x=3)=0.025027
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.898, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.667, SSIM(Y)=0.8928
+U100: PSNR(Y)=30.255, SSIM(Y)=0.9072
+M109: PSNR(Y)=36.778, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.189, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.775, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.568, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=29.989, SSIM(Y)=0.9038
+M109/subnet-0.5-x3: PSNR(Y)=36.425, SSIM(Y)=0.9704
+Model saved! Best loss: 0.024777
+Epoch 31/100: Training loss=0.019614, lr=4.64e-04
+Epoch 31/100: Validation combined_loss=0.024770, full_loss=0.024523, subnet_loss(width=0.5,x=3)=0.025016
+Set5: PSNR(Y)=37.294, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.257, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.780, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.190, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.777, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.570, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=29.996, SSIM(Y)=0.9039
+M109/subnet-0.5-x3: PSNR(Y)=36.430, SSIM(Y)=0.9704
+Model saved! Best loss: 0.024770
+Epoch 32/100: Training loss=0.019604, lr=4.59e-04
+Epoch 32/100: Validation combined_loss=0.024764, full_loss=0.024521, subnet_loss(width=0.5,x=3)=0.025007
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.897, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.257, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.780, SSIM(Y)=0.9716
+Set5/subnet-0.5-x3: PSNR(Y)=37.192, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.778, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.571, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=30.001, SSIM(Y)=0.9040
+M109/subnet-0.5-x3: PSNR(Y)=36.437, SSIM(Y)=0.9704
+Model saved! Best loss: 0.024764
+Epoch 33/100: Training loss=0.019588, lr=4.54e-04
+Epoch 33/100: Validation combined_loss=0.024758, full_loss=0.024517, subnet_loss(width=0.5,x=3)=0.024999
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.668, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.259, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.785, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.192, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.780, SSIM(Y)=0.9094
+B100/subnet-0.5-x3: PSNR(Y)=31.572, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=30.005, SSIM(Y)=0.9041
+M109/subnet-0.5-x3: PSNR(Y)=36.441, SSIM(Y)=0.9704
+Model saved! Best loss: 0.024758
+Epoch 34/100: Training loss=0.019609, lr=4.49e-04
+Epoch 34/100: Validation combined_loss=0.024753, full_loss=0.024515, subnet_loss(width=0.5,x=3)=0.024990
+Set5: PSNR(Y)=37.295, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.669, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.259, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.789, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.193, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.782, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.573, SSIM(Y)=0.8916
+U100/subnet-0.5-x3: PSNR(Y)=30.009, SSIM(Y)=0.9041
+M109/subnet-0.5-x3: PSNR(Y)=36.448, SSIM(Y)=0.9704
+Model saved! Best loss: 0.024753
+Epoch 35/100: Training loss=0.019615, lr=4.43e-04
+Epoch 35/100: Validation combined_loss=0.024748, full_loss=0.024513, subnet_loss(width=0.5,x=3)=0.024983
+Set5: PSNR(Y)=37.298, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.669, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.259, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.790, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.194, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.784, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.574, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.013, SSIM(Y)=0.9042
+M109/subnet-0.5-x3: PSNR(Y)=36.454, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024748
+Epoch 36/100: Training loss=0.019608, lr=4.37e-04
+Epoch 36/100: Validation combined_loss=0.024744, full_loss=0.024513, subnet_loss(width=0.5,x=3)=0.024976
+Set5: PSNR(Y)=37.298, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.259, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.790, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.194, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.787, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.576, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.017, SSIM(Y)=0.9042
+M109/subnet-0.5-x3: PSNR(Y)=36.459, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024744
+Epoch 37/100: Training loss=0.019612, lr=4.31e-04
+Epoch 37/100: Validation combined_loss=0.024739, full_loss=0.024509, subnet_loss(width=0.5,x=3)=0.024969
+Set5: PSNR(Y)=37.298, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.260, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.794, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.195, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.791, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.577, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.020, SSIM(Y)=0.9043
+M109/subnet-0.5-x3: PSNR(Y)=36.464, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024739
+Epoch 38/100: Training loss=0.019612, lr=4.25e-04
+Epoch 38/100: Validation combined_loss=0.024737, full_loss=0.024509, subnet_loss(width=0.5,x=3)=0.024965
+Set5: PSNR(Y)=37.298, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.259, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.798, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.195, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.791, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.578, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.022, SSIM(Y)=0.9043
+M109/subnet-0.5-x3: PSNR(Y)=36.469, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024737
+Epoch 39/100: Training loss=0.019608, lr=4.18e-04
+Epoch 39/100: Validation combined_loss=0.024735, full_loss=0.024510, subnet_loss(width=0.5,x=3)=0.024961
+Set5: PSNR(Y)=37.300, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.903, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.258, SSIM(Y)=0.9073
+M109: PSNR(Y)=36.795, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.196, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.792, SSIM(Y)=0.9095
+B100/subnet-0.5-x3: PSNR(Y)=31.579, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.024, SSIM(Y)=0.9043
+M109/subnet-0.5-x3: PSNR(Y)=36.469, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024735
+Epoch 40/100: Training loss=0.019581, lr=4.12e-04
+Epoch 40/100: Validation combined_loss=0.024729, full_loss=0.024506, subnet_loss(width=0.5,x=3)=0.024953
+Set5: PSNR(Y)=37.299, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.671, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.261, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.797, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.196, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.794, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.580, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.029, SSIM(Y)=0.9044
+M109/subnet-0.5-x3: PSNR(Y)=36.473, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024729
+Epoch 41/100: Training loss=0.019585, lr=4.05e-04
+Epoch 41/100: Validation combined_loss=0.024727, full_loss=0.024505, subnet_loss(width=0.5,x=3)=0.024949
+Set5: PSNR(Y)=37.300, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.897, SSIM(Y)=0.9105
+B100: PSNR(Y)=31.670, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.262, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.797, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.196, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.791, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.580, SSIM(Y)=0.8917
+U100/subnet-0.5-x3: PSNR(Y)=30.032, SSIM(Y)=0.9044
+M109/subnet-0.5-x3: PSNR(Y)=36.473, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024727
+Epoch 42/100: Training loss=0.019588, lr=3.97e-04
+Epoch 42/100: Validation combined_loss=0.024724, full_loss=0.024504, subnet_loss(width=0.5,x=3)=0.024944
+Set5: PSNR(Y)=37.301, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.900, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.671, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.262, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.800, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.196, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.794, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.582, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.033, SSIM(Y)=0.9044
+M109/subnet-0.5-x3: PSNR(Y)=36.477, SSIM(Y)=0.9705
+Model saved! Best loss: 0.024724
+Epoch 43/100: Training loss=0.019570, lr=3.90e-04
+Epoch 43/100: Validation combined_loss=0.024720, full_loss=0.024501, subnet_loss(width=0.5,x=3)=0.024939
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.263, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.800, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.198, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.796, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.583, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.036, SSIM(Y)=0.9045
+M109/subnet-0.5-x3: PSNR(Y)=36.478, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024720
+Epoch 44/100: Training loss=0.019602, lr=3.83e-04
+Epoch 44/100: Validation combined_loss=0.024718, full_loss=0.024500, subnet_loss(width=0.5,x=3)=0.024936
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.263, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.799, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.198, SSIM(Y)=0.9572
+Set14/subnet-0.5-x3: PSNR(Y)=32.797, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.583, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.038, SSIM(Y)=0.9045
+M109/subnet-0.5-x3: PSNR(Y)=36.479, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024718
+Epoch 45/100: Training loss=0.019572, lr=3.75e-04
+Epoch 45/100: Validation combined_loss=0.024716, full_loss=0.024500, subnet_loss(width=0.5,x=3)=0.024933
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.264, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.800, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.200, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.799, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.584, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.040, SSIM(Y)=0.9045
+M109/subnet-0.5-x3: PSNR(Y)=36.481, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024716
+Epoch 46/100: Training loss=0.019578, lr=3.67e-04
+Epoch 46/100: Validation combined_loss=0.024713, full_loss=0.024499, subnet_loss(width=0.5,x=3)=0.024928
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.671, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.264, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.801, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.201, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.799, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.585, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.042, SSIM(Y)=0.9046
+M109/subnet-0.5-x3: PSNR(Y)=36.484, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024713
+Epoch 47/100: Training loss=0.019581, lr=3.59e-04
+Epoch 47/100: Validation combined_loss=0.024711, full_loss=0.024498, subnet_loss(width=0.5,x=3)=0.024924
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.900, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.264, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.800, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.200, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.799, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.586, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.043, SSIM(Y)=0.9046
+M109/subnet-0.5-x3: PSNR(Y)=36.484, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024711
+Epoch 48/100: Training loss=0.019549, lr=3.51e-04
+Epoch 48/100: Validation combined_loss=0.024708, full_loss=0.024495, subnet_loss(width=0.5,x=3)=0.024921
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.899, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.264, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.805, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.200, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.799, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.586, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.044, SSIM(Y)=0.9046
+M109/subnet-0.5-x3: PSNR(Y)=36.487, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024708
+Epoch 49/100: Training loss=0.019561, lr=3.43e-04
+Epoch 49/100: Validation combined_loss=0.024707, full_loss=0.024496, subnet_loss(width=0.5,x=3)=0.024918
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.901, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.672, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.265, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.801, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.201, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.801, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.587, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.047, SSIM(Y)=0.9046
+M109/subnet-0.5-x3: PSNR(Y)=36.485, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024707
+Epoch 50/100: Training loss=0.019567, lr=3.34e-04
+Epoch 50/100: Validation combined_loss=0.024704, full_loss=0.024494, subnet_loss(width=0.5,x=3)=0.024915
+Set5: PSNR(Y)=37.300, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.673, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.266, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.803, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.202, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.802, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.588, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.049, SSIM(Y)=0.9046
+M109/subnet-0.5-x3: PSNR(Y)=36.489, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024704
+Epoch 51/100: Training loss=0.019573, lr=3.26e-04
+Epoch 51/100: Validation combined_loss=0.024702, full_loss=0.024492, subnet_loss(width=0.5,x=3)=0.024912
+Set5: PSNR(Y)=37.301, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.673, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.266, SSIM(Y)=0.9074
+M109: PSNR(Y)=36.807, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.203, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.804, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.588, SSIM(Y)=0.8918
+U100/subnet-0.5-x3: PSNR(Y)=30.050, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.491, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024702
+Epoch 52/100: Training loss=0.019569, lr=3.17e-04
+Epoch 52/100: Validation combined_loss=0.024698, full_loss=0.024489, subnet_loss(width=0.5,x=3)=0.024908
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.903, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.673, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.268, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.807, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.204, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.803, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.589, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.052, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.493, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024698
+Epoch 53/100: Training loss=0.019580, lr=3.08e-04
+Epoch 53/100: Validation combined_loss=0.024697, full_loss=0.024488, subnet_loss(width=0.5,x=3)=0.024906
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.673, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.267, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.205, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.803, SSIM(Y)=0.9096
+B100/subnet-0.5-x3: PSNR(Y)=31.589, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.053, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.494, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024697
+Epoch 54/100: Training loss=0.019572, lr=3.00e-04
+Epoch 54/100: Validation combined_loss=0.024696, full_loss=0.024488, subnet_loss(width=0.5,x=3)=0.024904
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.268, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.205, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.804, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.590, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.054, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.494, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024696
+Epoch 55/100: Training loss=0.019531, lr=2.91e-04
+Epoch 55/100: Validation combined_loss=0.024694, full_loss=0.024487, subnet_loss(width=0.5,x=3)=0.024901
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.269, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.806, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.205, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.806, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.591, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.056, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.493, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024694
+Epoch 56/100: Training loss=0.019542, lr=2.82e-04
+Epoch 56/100: Validation combined_loss=0.024693, full_loss=0.024486, subnet_loss(width=0.5,x=3)=0.024899
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.903, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.269, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.806, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.206, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.805, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.591, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.057, SSIM(Y)=0.9047
+M109/subnet-0.5-x3: PSNR(Y)=36.493, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024693
+Epoch 57/100: Training loss=0.019555, lr=2.73e-04
+Epoch 57/100: Validation combined_loss=0.024690, full_loss=0.024484, subnet_loss(width=0.5,x=3)=0.024896
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.270, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.207, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.806, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.592, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.058, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.497, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024690
+Epoch 58/100: Training loss=0.019534, lr=2.64e-04
+Epoch 58/100: Validation combined_loss=0.024687, full_loss=0.024482, subnet_loss(width=0.5,x=3)=0.024892
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.674, SSIM(Y)=0.8929
+U100: PSNR(Y)=30.271, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.810, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.208, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.807, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.592, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.060, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.500, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024687
+Epoch 59/100: Training loss=0.019553, lr=2.56e-04
+Epoch 59/100: Validation combined_loss=0.024687, full_loss=0.024482, subnet_loss(width=0.5,x=3)=0.024892
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.272, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.207, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.807, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.592, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.061, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.499, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024687
+Epoch 60/100: Training loss=0.019560, lr=2.47e-04
+Epoch 60/100: Validation combined_loss=0.024686, full_loss=0.024481, subnet_loss(width=0.5,x=3)=0.024890
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.272, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.208, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.808, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.593, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.061, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.499, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024686
+Epoch 61/100: Training loss=0.019527, lr=2.38e-04
+Epoch 61/100: Validation combined_loss=0.024684, full_loss=0.024481, subnet_loss(width=0.5,x=3)=0.024888
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.272, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.809, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.207, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.808, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.593, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.062, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.500, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024684
+Epoch 62/100: Training loss=0.019561, lr=2.29e-04
+Epoch 62/100: Validation combined_loss=0.024682, full_loss=0.024479, subnet_loss(width=0.5,x=3)=0.024886
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.273, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.812, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.209, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.809, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.064, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.502, SSIM(Y)=0.9706
+Model saved! Best loss: 0.024682
+Epoch 63/100: Training loss=0.019523, lr=2.20e-04
+Epoch 63/100: Validation combined_loss=0.024682, full_loss=0.024479, subnet_loss(width=0.5,x=3)=0.024885
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.273, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.814, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.211, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.808, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.064, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.503, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024682
+Epoch 64/100: Training loss=0.019542, lr=2.12e-04
+Epoch 64/100: Validation combined_loss=0.024680, full_loss=0.024477, subnet_loss(width=0.5,x=3)=0.024883
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.274, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.814, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.212, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.807, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.066, SSIM(Y)=0.9048
+M109/subnet-0.5-x3: PSNR(Y)=36.504, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024680
+Epoch 65/100: Training loss=0.019556, lr=2.03e-04
+Epoch 65/100: Validation combined_loss=0.024680, full_loss=0.024478, subnet_loss(width=0.5,x=3)=0.024881
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.902, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.273, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.814, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.213, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.807, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.066, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.506, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024680
+Epoch 66/100: Training loss=0.019541, lr=1.94e-04
+Epoch 66/100: Validation combined_loss=0.024678, full_loss=0.024476, subnet_loss(width=0.5,x=3)=0.024880
+Set5: PSNR(Y)=37.303, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.675, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.274, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.816, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.213, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.809, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.067, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.507, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024678
+Epoch 67/100: Training loss=0.019516, lr=1.86e-04
+Epoch 67/100: Validation combined_loss=0.024678, full_loss=0.024477, subnet_loss(width=0.5,x=3)=0.024879
+Set5: PSNR(Y)=37.302, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.272, SSIM(Y)=0.9075
+M109: PSNR(Y)=36.815, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.213, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.810, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.594, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.066, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.508, SSIM(Y)=0.9707
+Epoch 68/100: Training loss=0.019537, lr=1.77e-04
+Epoch 68/100: Validation combined_loss=0.024678, full_loss=0.024477, subnet_loss(width=0.5,x=3)=0.024878
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.273, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.812, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.213, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.810, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.595, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.067, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.506, SSIM(Y)=0.9707
+Epoch 69/100: Training loss=0.019547, lr=1.69e-04
+Epoch 69/100: Validation combined_loss=0.024676, full_loss=0.024476, subnet_loss(width=0.5,x=3)=0.024877
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.274, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.815, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.215, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.809, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.595, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.068, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.508, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024676
+Epoch 70/100: Training loss=0.019532, lr=1.61e-04
+Epoch 70/100: Validation combined_loss=0.024675, full_loss=0.024474, subnet_loss(width=0.5,x=3)=0.024875
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.904, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.275, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.215, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.809, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.595, SSIM(Y)=0.8919
+U100/subnet-0.5-x3: PSNR(Y)=30.068, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.509, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024675
+Epoch 71/100: Training loss=0.019531, lr=1.53e-04
+Epoch 71/100: Validation combined_loss=0.024674, full_loss=0.024474, subnet_loss(width=0.5,x=3)=0.024874
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.905, SSIM(Y)=0.9106
+B100: PSNR(Y)=31.676, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.275, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.215, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.811, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.596, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.069, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.510, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024674
+Epoch 72/100: Training loss=0.019514, lr=1.45e-04
+Epoch 72/100: Validation combined_loss=0.024674, full_loss=0.024475, subnet_loss(width=0.5,x=3)=0.024874
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.908, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.275, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.815, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.216, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.812, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.596, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.070, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.510, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024674
+Epoch 73/100: Training loss=0.019523, lr=1.37e-04
+Epoch 73/100: Validation combined_loss=0.024674, full_loss=0.024475, subnet_loss(width=0.5,x=3)=0.024873
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.908, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.276, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.812, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.812, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.596, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.071, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.508, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024674
+Epoch 74/100: Training loss=0.019536, lr=1.30e-04
+Epoch 74/100: Validation combined_loss=0.024672, full_loss=0.024473, subnet_loss(width=0.5,x=3)=0.024871
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.909, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.276, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.596, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.071, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.510, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024672
+Epoch 75/100: Training loss=0.019511, lr=1.23e-04
+Epoch 75/100: Validation combined_loss=0.024672, full_loss=0.024473, subnet_loss(width=0.5,x=3)=0.024870
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.908, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.811, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.812, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.596, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.072, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.508, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024672
+Epoch 76/100: Training loss=0.019551, lr=1.15e-04
+Epoch 76/100: Validation combined_loss=0.024671, full_loss=0.024472, subnet_loss(width=0.5,x=3)=0.024869
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.811, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.072, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.511, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024671
+Epoch 77/100: Training loss=0.019540, lr=1.08e-04
+Epoch 77/100: Validation combined_loss=0.024671, full_loss=0.024473, subnet_loss(width=0.5,x=3)=0.024869
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.906, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.216, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.811, SSIM(Y)=0.9097
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.072, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.512, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024671
+Epoch 78/100: Training loss=0.019519, lr=1.02e-04
+Epoch 78/100: Validation combined_loss=0.024670, full_loss=0.024472, subnet_loss(width=0.5,x=3)=0.024868
+Set5: PSNR(Y)=37.304, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.908, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.812, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.073, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.512, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024670
+Epoch 79/100: Training loss=0.019503, lr=9.51e-05
+Epoch 79/100: Validation combined_loss=0.024670, full_loss=0.024472, subnet_loss(width=0.5,x=3)=0.024868
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.908, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.811, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.216, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.073, SSIM(Y)=0.9049
+M109/subnet-0.5-x3: PSNR(Y)=36.511, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024670
+Epoch 80/100: Training loss=0.019542, lr=8.87e-05
+Epoch 80/100: Validation combined_loss=0.024670, full_loss=0.024472, subnet_loss(width=0.5,x=3)=0.024868
+Set5: PSNR(Y)=37.305, SSIM(Y)=0.9576
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.677, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.811, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.215, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.074, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.511, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024670
+Epoch 81/100: Training loss=0.019568, lr=8.26e-05
+Epoch 81/100: Validation combined_loss=0.024668, full_loss=0.024470, subnet_loss(width=0.5,x=3)=0.024866
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.813, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.074, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.513, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024668
+Epoch 82/100: Training loss=0.019483, lr=7.68e-05
+Epoch 82/100: Validation combined_loss=0.024667, full_loss=0.024469, subnet_loss(width=0.5,x=3)=0.024865
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.911, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.277, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.816, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.074, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.514, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024667
+Epoch 83/100: Training loss=0.019482, lr=7.12e-05
+Epoch 83/100: Validation combined_loss=0.024667, full_loss=0.024469, subnet_loss(width=0.5,x=3)=0.024865
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.912, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.815, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.815, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.075, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.513, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024667
+Epoch 84/100: Training loss=0.019519, lr=6.58e-05
+Epoch 84/100: Validation combined_loss=0.024667, full_loss=0.024469, subnet_loss(width=0.5,x=3)=0.024864
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.909, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.217, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.075, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.514, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024667
+Epoch 85/100: Training loss=0.019515, lr=6.08e-05
+Epoch 85/100: Validation combined_loss=0.024666, full_loss=0.024468, subnet_loss(width=0.5,x=3)=0.024864
+Set5: PSNR(Y)=37.306, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.909, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.075, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.514, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024666
+Epoch 86/100: Training loss=0.019509, lr=5.59e-05
+Epoch 86/100: Validation combined_loss=0.024666, full_loss=0.024468, subnet_loss(width=0.5,x=3)=0.024864
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9717
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.075, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.514, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024666
+Epoch 87/100: Training loss=0.019533, lr=5.14e-05
+Epoch 87/100: Validation combined_loss=0.024665, full_loss=0.024467, subnet_loss(width=0.5,x=3)=0.024863
+Set5: PSNR(Y)=37.310, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.911, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.820, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.220, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.075, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.516, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024665
+Epoch 88/100: Training loss=0.019511, lr=4.72e-05
+Epoch 88/100: Validation combined_loss=0.024664, full_loss=0.024467, subnet_loss(width=0.5,x=3)=0.024862
+Set5: PSNR(Y)=37.309, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.220, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.516, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024664
+Epoch 89/100: Training loss=0.019489, lr=4.32e-05
+Epoch 89/100: Validation combined_loss=0.024665, full_loss=0.024467, subnet_loss(width=0.5,x=3)=0.024862
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.220, SSIM(Y)=0.9574
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.515, SSIM(Y)=0.9707
+Epoch 90/100: Training loss=0.019565, lr=3.96e-05
+Epoch 90/100: Validation combined_loss=0.024665, full_loss=0.024467, subnet_loss(width=0.5,x=3)=0.024862
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.818, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.597, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.515, SSIM(Y)=0.9707
+Epoch 91/100: Training loss=0.019504, lr=3.62e-05
+Epoch 91/100: Validation combined_loss=0.024663, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.309, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.819, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.220, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024663
+Epoch 92/100: Training loss=0.019513, lr=3.32e-05
+Epoch 92/100: Validation combined_loss=0.024663, full_loss=0.024465, subnet_loss(width=0.5,x=3)=0.024861
+Set5: PSNR(Y)=37.309, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.820, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+Epoch 93/100: Training loss=0.019509, lr=3.04e-05
+Epoch 93/100: Validation combined_loss=0.024663, full_loss=0.024465, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024663
+Epoch 94/100: Training loss=0.019510, lr=2.80e-05
+Epoch 94/100: Validation combined_loss=0.024662, full_loss=0.024465, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.909, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.280, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.516, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024662
+Epoch 95/100: Training loss=0.019500, lr=2.59e-05
+Epoch 95/100: Validation combined_loss=0.024663, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.909, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.818, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+Epoch 96/100: Training loss=0.019515, lr=2.41e-05
+Epoch 96/100: Validation combined_loss=0.024663, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.280, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.516, SSIM(Y)=0.9707
+Epoch 97/100: Training loss=0.019516, lr=2.26e-05
+Epoch 97/100: Validation combined_loss=0.024663, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.817, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.813, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.516, SSIM(Y)=0.9707
+Epoch 98/100: Training loss=0.019528, lr=2.15e-05
+Epoch 98/100: Validation combined_loss=0.024662, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024859
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.911, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.819, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.519, SSIM(Y)=0.9707
+Model saved! Best loss: 0.024662
+Epoch 99/100: Training loss=0.019507, lr=2.07e-05
+Epoch 99/100: Validation combined_loss=0.024664, full_loss=0.024467, subnet_loss(width=0.5,x=3)=0.024860
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.278, SSIM(Y)=0.9076
+M109: PSNR(Y)=36.818, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.218, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.076, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+Epoch 100/100: Training loss=0.019522, lr=2.02e-05
+Epoch 100/100: Validation combined_loss=0.024662, full_loss=0.024466, subnet_loss(width=0.5,x=3)=0.024859
+Set5: PSNR(Y)=37.308, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.910, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.818, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.517, SSIM(Y)=0.9707
+==================================================
+Training Finished
+==================================================
+==================================================
+Testing Best Model
+==================================================
+Set5: PSNR(Y)=37.307, SSIM(Y)=0.9577
+Set14: PSNR(Y)=32.911, SSIM(Y)=0.9107
+B100: PSNR(Y)=31.678, SSIM(Y)=0.8930
+U100: PSNR(Y)=30.279, SSIM(Y)=0.9077
+M109: PSNR(Y)=36.819, SSIM(Y)=0.9718
+Set5/subnet-0.5-x3: PSNR(Y)=37.219, SSIM(Y)=0.9573
+Set14/subnet-0.5-x3: PSNR(Y)=32.814, SSIM(Y)=0.9098
+B100/subnet-0.5-x3: PSNR(Y)=31.598, SSIM(Y)=0.8920
+U100/subnet-0.5-x3: PSNR(Y)=30.077, SSIM(Y)=0.9050
+M109/subnet-0.5-x3: PSNR(Y)=36.519, SSIM(Y)=0.9707
+==================================================
+Testing Bicubic Interpolation
+==================================================
+Set5: PSNR(Y)=33.977, SSIM(Y)=0.9330
+Set14: PSNR(Y)=30.539, SSIM(Y)=0.8748
+B100: PSNR(Y)=29.707, SSIM(Y)=0.8490
+U100: PSNR(Y)=27.063, SSIM(Y)=0.8451
+M109: PSNR(Y)=31.213, SSIM(Y)=0.9382

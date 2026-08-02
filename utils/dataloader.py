@@ -1,10 +1,9 @@
 import os
 import random
-from collections import Counter
 from pathlib import Path
 
 import torch
-from torch.utils.data import Dataset, WeightedRandomSampler
+from torch.utils.data import Dataset
 
 
 def default_patch_size(scale):
@@ -42,21 +41,19 @@ class SRTrainDataset(Dataset):
 
         self.hr_data = []
         self.lr_data = []
-        self.dataset_names = []
 
         for file_path in train_files:
             packed = torch.load(file_path, weights_only=False)
             lr_key = f'lr_x{scale}'
-            if not isinstance(packed, dict) or 'hr' not in packed or lr_key not in packed or 'names' not in packed or 'dataset_names' not in packed:
+            if not isinstance(packed, dict) or 'hr' not in packed or lr_key not in packed or 'names' not in packed:
                 raise ValueError(f'{file_path} 不是新的训练分片格式')
 
             hr_batch = packed['hr']
             lr_batch = packed[lr_key]
             names = packed['names']
-            dataset_names = packed['dataset_names']
 
-            if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names) or len(hr_batch) != len(dataset_names):
-                raise ValueError(f'{file_path} 中 names/dataset_names/HR/LR 数量不一致')
+            if len(hr_batch) != len(lr_batch) or len(hr_batch) != len(names):
+                raise ValueError(f'{file_path} 中 names/HR/LR 数量不一致')
 
             hr_list = list(hr_batch)
             lr_list = list(lr_batch)
@@ -66,13 +63,6 @@ class SRTrainDataset(Dataset):
 
             self.hr_data.extend(hr_list)
             self.lr_data.extend(lr_list)
-            self.dataset_names.extend(list(dataset_names))
-
-        dataset_counts = Counter(self.dataset_names)
-        self.sample_weights = torch.tensor(
-            [1.0 / dataset_counts[name] for name in self.dataset_names],
-            dtype=torch.double
-        )
     
     def __len__(self):
         return len(self.hr_data)
@@ -173,18 +163,13 @@ class SRValDataset(Dataset):
 
 def create_train_loader(datasets_dir, scale=2, batch_size=64, num_workers=8, patch_size=0, in_channels=3):
     dataset = SRTrainDataset(datasets_dir, scale=scale, patch_size=patch_size, in_channels=in_channels)
-    sampler = WeightedRandomSampler(
-        weights=dataset.sample_weights,
-        num_samples=len(dataset),
-        replacement=True
-    )
     train_loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        sampler=None,
         num_workers=num_workers,
         pin_memory=True,
-        persistent_workers=num_workers > 0
+        persistent_workers=num_workers > 0,
+        shuffle=True
     )
     return train_loader
 

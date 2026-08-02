@@ -1,0 +1,18 @@
+python train.py \
+  --scale 2 \
+  --channel_nums 32 \
+  --num_blocks 5 \
+  --epochs 150 \
+  --batch_size 64 \
+  --lr 2e-3 \
+  --minlr 8e-5 \
+  --num_workers 12 \
+  --save_dir "./checkpoints" \
+  --device "cuda" \
+  --in_channels 3 \
+  --patch_size 96 \
+  --warmup_epochs 15 \
+  --ema_decay 0.999 \
+  --is_residual \
+  --is_mixed \
+  --mixed_blocks 3 \

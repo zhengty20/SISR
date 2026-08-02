@@ -1,16 +1,23 @@
 python train.py \
-  --model_name "DPSR" \
   --scale 2 \
   --channel_nums 32 \
   --num_blocks 5 \
-  --epochs 150 \
+  --subnet_expand_block 3 \
+  --block_nums 3 5 \
+  --epochs 100 \
   --batch_size 64 \
-  --lr 2e-3 \
-  --minlr 5e-5 \
+  --lr 5e-4 \
+  --minlr 2e-5 \
   --num_workers 8 \
   --save_dir "./checkpoints" \
   --device "cuda" \
   --in_channels 3 \
-  --patch_size 144 \
-  --warmup_epochs 10 \
-  --ema_decay 0.999
+  --patch_size 96 \
+  --warmup_epochs 15 \
+  --ema_decay 0.999 \
+  --is_residual \
+  --joint_width_training \
+  --subnet_width_mult 0.5 \
+  --subnet_loss_weight 1.0 \
+  --distill_loss_weight 0.1 \
+  --pretrained_fp ./checkpoints/DPSR_x2_0801_1611.pth
