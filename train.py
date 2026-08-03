@@ -8,7 +8,7 @@ import torch
 import torch.optim as optim
 from torch_ema import ExponentialMovingAverage
 
-from models import BaselineSR, DPSR
+from models import BaselineSR, DPSR, channel_label
 from utils import (
     MixedLoss,
     WarmupCosineScheduler,
@@ -33,7 +33,7 @@ def _build_model(args, device):
             fea_dim=args.channel_nums,
             num_blocks=args.num_blocks,
             bias=False,
-            subnet_expand_block=args.subnet_expand_block,
+            subnet_channels=args.subnet_channels,
         ).to(device)
         print(f"Using DPSR model for scale {args.scale}.")
         model_name = "DPSR"
@@ -58,27 +58,16 @@ def _load_pretrained_model(model, checkpoint_path, device, logger):
 
 
 def _model_configurations(args):
-    """Return all depth/width executions used for validation and test metrics."""
-    configurations = []
-    active_depths = args.block_nums if args.is_residual else (None,)
-    for active_num_blocks in active_depths:
-        depth_name = f"blocks-{active_num_blocks}" if active_num_blocks else "blocks-full"
-        configurations.append((f"{depth_name}/full", active_num_blocks, None, 1.0))
-        if args.joint_width_training:
-            configurations.append(
-                (
-                    f"{depth_name}/subnet-{args.subnet_width_mult:.1f}-x{args.subnet_expand_block}",
-                    active_num_blocks,
-                    args.subnet_width_mult,
-                    args.subnet_loss_weight,
-                )
-            )
+    """Return the full-channel path and optional explicit subnet path."""
+    configurations = [(channel_label(args.channel_nums), args.channel_nums)]
+    if args.joint_width_training:
+        configurations.append(
+            (channel_label(args.subnet_channels), args.subnet_channels)
+        )
     return configurations
 
 
-def _weighted_val_loss(
-    model, val_loaders, loss_func, args, device, active_num_blocks=None, width_mult=None
-):
+def _weighted_val_loss(model, val_loaders, loss_func, args, device, channels):
     weighted_val_loss = 0.0
     total_val_samples = 0
     for loader in val_loaders.values():
@@ -88,8 +77,7 @@ def _weighted_val_loss(
             loss_func,
             device,
             is_residual=args.is_residual,
-            width_mult=width_mult,
-            active_num_blocks=active_num_blocks,
+            channels=channels,
         )
         sample_count = len(loader.dataset)
         weighted_val_loss += loader_loss * sample_count
@@ -99,26 +87,22 @@ def _weighted_val_loss(
 
 def _validate_configurations(model, val_loaders, loss_func, args, device):
     configuration_losses = {}
-    weighted_loss = 0.0
-    total_weight = 0.0
-    for name, active_num_blocks, width_mult, weight in _model_configurations(args):
-        loss = _weighted_val_loss(
-            model,
-            val_loaders,
-            loss_func,
-            args,
-            device,
-            active_num_blocks=active_num_blocks,
-            width_mult=width_mult,
+    for name, channels in _model_configurations(args):
+        configuration_losses[name] = _weighted_val_loss(
+            model, val_loaders, loss_func, args, device, channels
         )
-        configuration_losses[name] = loss
-        weighted_loss += weight * loss
-        total_weight += weight
-    return {"combined": weighted_loss / total_weight, "configurations": configuration_losses}
+    full_loss = configuration_losses[channel_label(args.channel_nums)]
+    subnet_loss = configuration_losses.get(channel_label(args.subnet_channels))
+    combined_loss = full_loss
+    if subnet_loss is not None:
+        combined_loss = (full_loss + args.subnet_loss_weight * subnet_loss) / (
+            1.0 + args.subnet_loss_weight
+        )
+    return {"combined": combined_loss, "configurations": configuration_losses}
 
 
 def _log_model_metrics(logger, model, val_loaders, args, device):
-    for config_name, active_num_blocks, width_mult, _ in _model_configurations(args):
+    for config_name, channels in _model_configurations(args):
         for dataset_name, loader in val_loaders.items():
             val_metrics = validate_metrics(
                 model,
@@ -127,40 +111,13 @@ def _log_model_metrics(logger, model, val_loaders, args, device):
                 device,
                 1.0,
                 is_residual=args.is_residual,
-                width_mult=width_mult,
-                active_num_blocks=active_num_blocks,
+                channels=channels,
             )
             logger.log_validation_results(f"{dataset_name}/{config_name}", val_metrics)
 
 
-def _normalize_block_configuration(args):
-    args.block_nums = tuple(sorted(set(int(depth) for depth in args.block_nums)))
-    if not args.block_nums:
-        raise ValueError("--block_nums must contain at least one active depth")
-    if any(depth < 1 or depth > args.num_blocks for depth in args.block_nums):
-        raise ValueError(
-            f"--block_nums must be in [1, {args.num_blocks}], got {args.block_nums}"
-        )
-    if args.is_residual and max(args.block_nums) != args.num_blocks:
-        raise ValueError(
-            "The largest --block_nums value must equal --num_blocks so every "
-            "DPSR block is trained."
-        )
-    if not args.is_residual and args.block_nums != (args.num_blocks,):
-        raise ValueError(
-            "Multi-depth training is implemented for DPSR only; use "
-            f"--block_nums {args.num_blocks} for BaselineSR."
-        )
-    if args.joint_width_training and args.subnet_expand_block > min(args.block_nums):
-        raise ValueError(
-            "--subnet_expand_block must not exceed the smallest active depth "
-            "when training the half-width subnet."
-        )
-
-
 def main():
     args = train_parser()
-    _normalize_block_configuration(args)
     if args.joint_width_training and not args.is_residual:
         raise ValueError("--joint_width_training is only supported by DPSR")
     if args.subnet_loss_weight < 0.0:
@@ -174,7 +131,10 @@ def main():
 
     logger = create_logger(log_dir="./logs", model_name=model_name, scale=args.scale)
     logger.info(f"使用设备: {device}")
-    logger.info(f"Joint active block depths: {args.block_nums}")
+    logger.info(
+        f"Full path: {channel_label(args.channel_nums)}; subnet path: "
+        f"{channel_label(args.subnet_channels)}; blocks: {args.num_blocks}"
+    )
 
     if args.pretrained_fp:
         _load_pretrained_model(model, args.pretrained_fp, device, logger)
@@ -188,12 +148,12 @@ def main():
         in_channels=args.in_channels,
     )
     val_loaders = {
-        name: create_val_loader(
-            f"/home/tyzheng/Datasets_pt/val/{name}",
+        dataset_name: create_val_loader(
+            f"/home/tyzheng/Datasets_pt/val/{dataset_name}",
             args.scale,
             in_channels=args.in_channels,
         )
-        for name in ("Set5", "Set14", "B100", "U100", "M109")
+        for dataset_name in ("Set5", "Set14", "B100", "U100", "M109")
     }
 
     time_stamp = datetime.now().strftime("%m%d_%H%M")
@@ -229,17 +189,18 @@ def main():
             ema=ema,
             is_residual=args.is_residual,
             joint_width_training=args.joint_width_training,
-            subnet_width_mult=args.subnet_width_mult,
+            subnet_channels=args.subnet_channels,
             subnet_loss_weight=args.subnet_loss_weight,
             distill_loss_weight=args.distill_loss_weight,
-            active_num_blocks=args.block_nums if args.is_residual else None,
         )
         current_lr = optimizer.param_groups[0]["lr"]
         logger.log_epoch_train(epoch, args.epochs, train_loss, current_lr)
 
         best_candidate = None
         with ema.average_parameters():
-            val_losses = _validate_configurations(model, val_loaders, loss_func, args, device)
+            val_losses = _validate_configurations(
+                model, val_loaders, loss_func, args, device
+            )
             val_loss = val_losses["combined"]
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
@@ -266,9 +227,8 @@ def main():
                     "validation_losses": val_losses["configurations"],
                     "model_config": {
                         "num_blocks": args.num_blocks,
-                        "block_nums": list(args.block_nums),
-                        "subnet_expand_block": args.subnet_expand_block,
-                        "subnet_width_mult": args.subnet_width_mult,
+                        "full_channels": args.channel_nums,
+                        "subnet_channels": args.subnet_channels,
                     },
                 },
                 model_path,

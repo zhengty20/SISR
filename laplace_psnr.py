@@ -1,25 +1,27 @@
 import argparse
 import csv
 from pathlib import Path
+
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
-import matplotlib
-import matplotlib.pyplot as plt
 
-
-from models import BaselineSR, DPSR
+from models import DPSR
+from utils.laplace import (
+    laplacian_map as shared_laplacian_map,
+    rgb_to_gray,
+    rgb_to_studio_y,
+)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_VAL_DIR = Path("/home/tyzheng/Datasets_pt/val/Set5")
-DEFAULT_CHECKPOINT = SCRIPT_DIR / "checkpoints" / "DPSR_x2_0801_2318.pth"
-DEFAULT_BASELINE_CHECKPOINT = (
-    SCRIPT_DIR / "checkpoints" / "BaselineSR_x2_0730_1753.pth"
-)
+DEFAULT_CHECKPOINT = SCRIPT_DIR / "checkpoints" / "DPSR_x2_0803_1031.pth"
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "spatial_redundancy_plots"
 SCALE = 2
 MIN_LAPLACIAN = 1
-MAX_LAPLACIAN = 14
+MAX_LAPLACIAN = 24
 LAPLACIAN_STEP = 0.5
 NUM_BINS = round((MAX_LAPLACIAN - MIN_LAPLACIAN) / LAPLACIAN_STEP)
 
@@ -33,23 +35,15 @@ def parse_args():
     )
     parser.add_argument("--val-dir", type=Path, default=DEFAULT_VAL_DIR)
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
-    parser.add_argument("--baseline-checkpoint", type=Path, default=DEFAULT_BASELINE_CHECKPOINT)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--in-channels", type=int, default=3, choices=(1, 3))
     parser.add_argument("--channel-nums", type=int, default=32)
     parser.add_argument("--num-blocks", type=int, default=5)
     parser.add_argument(
-        "--subnet-expand-block",
+        "--subnet-channels",
         type=int,
-        default=3,
-        help="1-based block that expands the compressed DPSR back to full width.",
-    )
-    parser.add_argument(
-        "--subnet-width-mult",
-        type=float,
-        default=0.5,
-        choices=(0.5,),
-        help="Channel multiplier used by the compressed DPSR.",
+        default=16,
+        help="Feature channels of the explicit full-depth DPSR subnet.",
     )
     parser.add_argument("--block-size", type=int, default=24, help="LR block width/height.")
     parser.add_argument("--max-images", type=int, default=0, help="0 uses the full dataset.")
@@ -61,17 +55,28 @@ def parse_args():
         choices=(1, 2, 3, 4, 5),
         help="Degree of the weighted Chebyshev trend curve.",
     )
+    parser.add_argument(
+        "--plot-range",
+        nargs=2,
+        type=float,
+        default=(MIN_LAPLACIAN, MAX_LAPLACIAN),
+        metavar=("MIN", "MAX"),
+        help="Inclusive Laplacian range for the overview plot.",
+    )
+    parser.add_argument(
+        "--detail-plot-range",
+        nargs=2,
+        type=float,
+        default=(8.0, MAX_LAPLACIAN),
+        metavar=("MIN", "MAX"),
+        help="Inclusive Laplacian range for the DPSR-only detail plot.",
+    )
     return parser.parse_args()
 
 
 def to_y_channel(image):
-    """Convert an NCHW tensor in [0, 255] to a one-channel studio-range Y tensor."""
-    if image.shape[1] == 1:
-        return image
-    if image.shape[1] != 3:
-        raise ValueError(f"Expected 1 or 3 channels, got {image.shape[1]}")
-    coefficients = image.new_tensor([65.481, 128.553, 24.966]).view(1, 3, 1, 1)
-    return (image * coefficients).sum(dim=1, keepdim=True) / 255.0 + 16.0
+    """Convert an NCHW tensor in [0, 255] to one studio-range Y channel."""
+    return rgb_to_studio_y(image)
 
 
 def rgb_to_model_y(image):
@@ -111,12 +116,8 @@ def iter_validation_pairs(val_dir, scale, in_channels):
 
 
 def laplacian_map(image_y):
-    """Return the absolute response of the normalized eight-neighbor Laplacian."""
-    kernel = 0.125 * image_y.new_tensor(
-        [[-1.0, -1.0, -1.0], [-1.0, 8.0, -1.0], [-1.0, -1.0, -1.0]]
-    ).view(1, 1, 3, 3)
-    padded = F.pad(image_y, (1, 1, 1, 1), mode="replicate")
-    return F.conv2d(padded, kernel).abs()
+    """Return the shared absolute eight-neighbor Laplace response."""
+    return shared_laplacian_map(image_y)
 
 
 def block_means(image, block_size):
@@ -128,36 +129,25 @@ def block_mse(prediction, target, block_size):
     return block_means((prediction - target).square(), block_size)
 
 
-def load_models(args, device):
-    def load(model, checkpoint_path):
-        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-        model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
-        model.eval()
-        return model
-
-    dpsr = DPSR(
+def load_model(args, device):
+    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    model = DPSR(
         scale=args.scale,
         in_dim=args.in_channels,
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
-        subnet_expand_block=args.subnet_expand_block,
+        subnet_channels=args.subnet_channels,
     ).to(device)
-    baseline = BaselineSR(
-        scale=args.scale,
-        in_dim=args.in_channels,
-        fea_dim=args.channel_nums,
-        num_blocks=args.num_blocks,
-        bias=False,
-    ).to(device)
-    return load(dpsr, args.checkpoint), load(baseline, args.baseline_checkpoint)
+    model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
+    model.eval()
+    return model
 
 
-def collect_block_statistics(dpsr_model, baseline_model, loader, args, device):
+def collect_block_statistics(dpsr_model, loader, args, device):
     score_parts = []
-    dpsr_mse_parts = []
-    dpsr_compressed_mse_parts = []
-    baseline_mse_parts = []
+    dpsr_full_mse_parts = []
+    dpsr_subnet_mse_parts = []
     bicubic_mse_parts = []
 
     with torch.no_grad():
@@ -178,57 +168,53 @@ def collect_block_statistics(dpsr_model, baseline_model, loader, args, device):
             hr = hr[..., : lr_height * args.scale, : lr_width * args.scale]
             bicubic = F.interpolate(
                 lr, scale_factor=args.scale, mode="bicubic", align_corners=False
-            )
-            bicubic = bicubic.round().clamp(0, 255)
+            ).round().clamp(0, 255)
             model_input = lr / 255.0
-            dpsr = bicubic + dpsr_model(model_input, width_mult=1.0) * 255.0
-            dpsr_compressed = (bicubic
-                + dpsr_model(
-                    model_input,
-                    width_mult=args.subnet_width_mult,
-                    subnet_expand_block=args.subnet_expand_block)
-                * 255.0
-            )
-            baseline = baseline_model(model_input) * 255.0
-            dpsr = dpsr.round().clamp(0, 255)
-            dpsr_compressed = dpsr_compressed.round().clamp(0, 255)
-            baseline = baseline.round().clamp(0, 255)
+            dpsr_full = bicubic + dpsr_model(
+                model_input, channels=args.channel_nums
+            ) * 255.0
+            dpsr_subnet = bicubic + dpsr_model(
+                model_input, channels=args.subnet_channels
+            ) * 255.0
+            dpsr_full = dpsr_full.round().clamp(0, 255)
+            dpsr_subnet = dpsr_subnet.round().clamp(0, 255)
 
             lr_y = to_y_channel(lr)
             hr_y = to_y_channel(hr)
             bicubic_y = to_y_channel(bicubic)
-            dpsr_y = to_y_channel(dpsr)
-            dpsr_compressed_y = to_y_channel(dpsr_compressed)
-            baseline_y = to_y_channel(baseline)
+            dpsr_full_y = to_y_channel(dpsr_full)
+            dpsr_subnet_y = to_y_channel(dpsr_subnet)
             hr_block_size = args.block_size * args.scale
 
-            score_parts.append(block_means(laplacian_map(lr_y), args.block_size).cpu())
-            dpsr_mse_parts.append(block_mse(dpsr_y, hr_y, hr_block_size).cpu())
-            dpsr_compressed_mse_parts.append(
-                block_mse(dpsr_compressed_y, hr_y, hr_block_size).cpu()
+            score_parts.append(
+                block_means(laplacian_map(rgb_to_gray(lr)), args.block_size).cpu()
             )
-            baseline_mse_parts.append(block_mse(baseline_y, hr_y, hr_block_size).cpu())
-            bicubic_mse_parts.append(block_mse(bicubic_y, hr_y, hr_block_size).cpu())
+            dpsr_full_mse_parts.append(
+                block_mse(dpsr_full_y, hr_y, hr_block_size).cpu()
+            )
+            dpsr_subnet_mse_parts.append(
+                block_mse(dpsr_subnet_y, hr_y, hr_block_size).cpu()
+            )
+            bicubic_mse_parts.append(
+                block_mse(bicubic_y, hr_y, hr_block_size).cpu()
+            )
 
     if not score_parts:
         raise ValueError(
             f"No complete {args.block_size}x{args.block_size} LR blocks found in {args.val_dir}"
         )
-
     return (
         torch.cat(score_parts).numpy(),
-        torch.cat(dpsr_mse_parts).numpy(),
-        torch.cat(dpsr_compressed_mse_parts).numpy(),
-        torch.cat(baseline_mse_parts).numpy(),
+        torch.cat(dpsr_full_mse_parts).numpy(),
+        torch.cat(dpsr_subnet_mse_parts).numpy(),
         torch.cat(bicubic_mse_parts).numpy(),
     )
 
 
 def bin_statistics(
     scores,
-    dpsr_mse,
-    dpsr_compressed_mse,
-    baseline_mse,
+    dpsr_full_mse,
+    dpsr_subnet_mse,
     bicubic_mse,
     bins,
     max_laplacian=None,
@@ -240,9 +226,8 @@ def bin_statistics(
 
     valid = scores <= max_laplacian
     scores = scores[valid]
-    dpsr_mse = dpsr_mse[valid]
-    dpsr_compressed_mse = dpsr_compressed_mse[valid]
-    baseline_mse = baseline_mse[valid]
+    dpsr_full_mse = dpsr_full_mse[valid]
+    dpsr_subnet_mse = dpsr_subnet_mse[valid]
     bicubic_mse = bicubic_mse[valid]
     edges = np.linspace(0.0, max_laplacian, bins + 1)
     bin_ids = np.digitize(scores, edges[1:-1])
@@ -262,9 +247,8 @@ def bin_statistics(
         "edges": edges,
         "centers": 0.5 * (edges[:-1] + edges[1:]),
         "counts": counts,
-        "dpsr_psnr": mean_psnr_by_bin(dpsr_mse),
-        "dpsr_compressed_psnr": mean_psnr_by_bin(dpsr_compressed_mse),
-        "baseline_psnr": mean_psnr_by_bin(baseline_mse),
+        "dpsr_full_psnr": mean_psnr_by_bin(dpsr_full_mse),
+        "dpsr_subnet_psnr": mean_psnr_by_bin(dpsr_subnet_mse),
         "bicubic_psnr": mean_psnr_by_bin(bicubic_mse),
     }
 
@@ -278,9 +262,8 @@ def save_csv(stats, output_path):
                 "laplacian_max",
                 "laplacian_center",
                 "block_count",
-                "dpsr_psnr_db",
-                "dpsr_compressed_psnr_db",
-                "baseline_psnr_db",
+                "dpsr_full_psnr_db",
+                "dpsr_subnet_psnr_db",
                 "bicubic_psnr_db",
             ]
         )
@@ -291,16 +274,14 @@ def save_csv(stats, output_path):
                     stats["edges"][index + 1],
                     center,
                     int(stats["counts"][index]),
-                    stats["dpsr_psnr"][index],
-                    stats["dpsr_compressed_psnr"][index],
-                    stats["baseline_psnr"][index],
+                    stats["dpsr_full_psnr"][index],
+                    stats["dpsr_subnet_psnr"][index],
                     stats["bicubic_psnr"][index],
                 ]
             )
 
 
 def fit_trend_curve(centers, values, counts, degree, points=256):
-    """Fit a weighted low-degree trend without modifying the measured bin values."""
     valid = (
         np.isfinite(centers)
         & np.isfinite(values)
@@ -312,48 +293,48 @@ def fit_trend_curve(centers, values, counts, degree, points=256):
     weights = np.sqrt(counts[valid])
     if x.size < 2:
         raise ValueError("At least two populated Laplacian intervals are required.")
-
     degree = min(int(degree), x.size - 1)
     trend = np.polynomial.Chebyshev.fit(x, y, degree, w=weights)
     trend_x = np.linspace(x.min(), x.max(), points)
     return trend_x, trend(trend_x)
 
 
-def save_line_plot(stats, output_path, include_bicubic, trend_degree):
+def save_line_plot(stats, output_path, plot_range, trend_degree, include_bicubic):
     matplotlib.use("Agg")
     plt.rcParams["font.family"] = "Arial"
     centers = stats["centers"]
     counts = stats["counts"]
-    dpsr = stats["dpsr_psnr"]
-    dpsr_compressed = stats["dpsr_compressed_psnr"]+0.1
-    baseline = stats["baseline_psnr"]
-    bicubic = stats["bicubic_psnr"] + 0.6
+    dpsr_full = stats["dpsr_full_psnr"]
+    dpsr_subnet = stats["dpsr_subnet_psnr"]
+    bicubic = stats["bicubic_psnr"]
+    plot_min, plot_max = plot_range
 
-    valid = np.isfinite(dpsr) & np.isfinite(dpsr_compressed) & np.isfinite(baseline)
+    valid = (
+        (centers >= plot_min)
+        & (centers <= plot_max)
+        & np.isfinite(dpsr_full)
+        & np.isfinite(dpsr_subnet)
+    )
     if include_bicubic:
         valid &= np.isfinite(bicubic)
     if valid.sum() < 2:
-        raise ValueError("At least two populated Laplacian intervals are required.")
+        raise ValueError(
+            "At least two populated Laplacian intervals are required in the plot range."
+        )
 
     x = centers[valid]
     weights = counts[valid]
-    fig, ax = plt.subplots(figsize=(4.2, 3.6), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(5.0, 3.6), constrained_layout=True)
 
-    def plot_trend(values, color, label, linestyle="-"):
+    def plot_trend(values, color, label):
         trend_x, trend_y = fit_trend_curve(x, values[valid], weights, trend_degree)
-        ax.plot(trend_x, trend_y, color=color, linewidth=3, linestyle=linestyle, label=label)
+        ax.plot(trend_x, trend_y, color=color, linewidth=3, label=label)
 
-    plot_trend(baseline, "#AD65DC", "Baseline")
-    plot_trend(dpsr, "#8ddb51", "MPRC(full)")
-    plot_trend(dpsr_compressed, "#f09a45", "MPRC(mixed)")
     if include_bicubic:
         plot_trend(bicubic, "#5a89e6", "Bicubic")
-        ax.set_xlim(0, MAX_LAPLACIAN)
-        ax.set_ylim(28, 50)
-    else:
-        ax.set_xlim(8,  MAX_LAPLACIAN)
-        ax.set_ylim(32, 36)
-
+    plot_trend(dpsr_subnet, "#d9534f", f"DPSR({stats['subnet_channels']}ch)")
+    plot_trend(dpsr_full, "#8ddb51", f"DPSR({stats['full_channels']}ch)")
+    ax.set_xlim(plot_min, plot_max)
     ax.set_xlabel("Laplacian Magnitude", fontsize=22, labelpad=4, fontweight="bold")
     ax.set_ylabel("PSNR (dB)", fontsize=22, labelpad=4, fontweight="bold")
     ax.tick_params(axis="both", labelsize=20)
@@ -366,48 +347,82 @@ def save_line_plot(stats, output_path, include_bicubic, trend_degree):
         bbox_to_anchor=(1, 1),
         borderaxespad=0,
         frameon=False,
-        prop={"size": 16, "weight": "bold"},
+        prop={"size": 13, "weight": "bold"},
     )
     fig.savefig(output_path, dpi=300, bbox_inches="tight", format="svg")
     plt.close(fig)
 
 
+def validate_plot_range(plot_range, option_name):
+    plot_min, plot_max = plot_range
+    if not MIN_LAPLACIAN <= plot_min < plot_max <= MAX_LAPLACIAN:
+        raise ValueError(
+            f"{option_name} must satisfy {MIN_LAPLACIAN} <= MIN < MAX <= {MAX_LAPLACIAN}"
+        )
+
+
 def main():
     args = parse_args()
     args.scale = SCALE
+    if not 0 < args.subnet_channels < args.channel_nums:
+        raise ValueError(
+            f"--subnet-channels must be in [1, {args.channel_nums - 1}]"
+        )
+    args.plot_range = tuple(args.plot_range)
+    args.detail_plot_range = tuple(args.detail_plot_range)
+    validate_plot_range(args.plot_range, "--plot-range")
+    validate_plot_range(args.detail_plot_range, "--detail-plot-range")
+
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-
-    dpsr_model, baseline_model = load_models(args, device)
+    dpsr_model = load_model(args, device)
     loader = iter_validation_pairs(args.val_dir, SCALE, args.in_channels)
-    scores, dpsr_mse, dpsr_compressed_mse, baseline_mse, bicubic_mse = (
-        collect_block_statistics(dpsr_model, baseline_model, loader, args, device)
+    scores, dpsr_full_mse, dpsr_subnet_mse, bicubic_mse = collect_block_statistics(
+        dpsr_model, loader, args, device
     )
     stats = bin_statistics(
         scores,
-        dpsr_mse,
-        dpsr_compressed_mse,
-        baseline_mse,
+        dpsr_full_mse,
+        dpsr_subnet_mse,
         bicubic_mse,
         bins=NUM_BINS,
         max_laplacian=MAX_LAPLACIAN,
     )
+    stats["full_channels"] = args.channel_nums
+    stats["subnet_channels"] = args.subnet_channels
 
-    output_stem = args.output_dir / "laplace_psnr1"
-    full_plot_path = output_stem.with_suffix(".svg")
-    comparison_plot_path = args.output_dir / "laplace_psnr2.svg"
-    save_csv(stats, output_stem.with_suffix(".csv"))
-    save_line_plot(stats, full_plot_path, include_bicubic=True, trend_degree=args.trend_degree)
-    save_line_plot(stats, comparison_plot_path, include_bicubic=False, trend_degree=args.trend_degree)
+    output_stem = args.output_dir / "laplace_psnr"
+    csv_path = output_stem.with_suffix(".csv")
+    overview_plot_path = output_stem.with_suffix(".svg")
+    detail_plot_path = args.output_dir / "laplace_psnr_detail.svg"
+    save_csv(stats, csv_path)
+    save_line_plot(
+        stats,
+        overview_plot_path,
+        plot_range=args.plot_range,
+        trend_degree=args.trend_degree,
+        include_bicubic=True,
+    )
+    save_line_plot(
+        stats,
+        detail_plot_path,
+        plot_range=args.detail_plot_range,
+        trend_degree=args.trend_degree,
+        include_bicubic=False,
+    )
 
     included_blocks = int(stats["counts"].sum())
     print(
         f"Analyzed {len(scores):,} blocks on {device}; "
         f"{included_blocks:,} have Laplacian scores in [0.0, {MAX_LAPLACIAN:.1f}]."
     )
-    print(f"Saved {NUM_BINS} PSNR intervals to {output_stem.with_suffix('.csv')}")
-    print(f"Saved {full_plot_path}")
-    print(f"Saved {comparison_plot_path}")
+    print(
+        f"Compared full DPSR({args.channel_nums}ch) with "
+        f"full-depth subnet DPSR({args.subnet_channels}ch)."
+    )
+    print(f"Saved {NUM_BINS} PSNR intervals to {csv_path}")
+    print(f"Saved overview plot to {overview_plot_path}")
+    print(f"Saved DPSR detail plot to {detail_plot_path}")
 
 
 if __name__ == "__main__":

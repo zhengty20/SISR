@@ -1,9 +1,11 @@
 import os
+
 import torch
 import torch.nn.functional as F
 
-from models import DPSR
-from utils import create_val_loader, metrics, final_test_parser
+from models import DPSR, channel_label
+from utils import create_val_loader, final_test_parser, metrics
+from utils.laplace import laplacian_map, rgb_to_gray
 
 
 class DPSRFrame:
@@ -13,30 +15,24 @@ class DPSRFrame:
         scale,
         patch_size,
         overlap,
-        threshold,
+        full_threshold,
+        subnet_threshold,
         device,
-        subnet_threshold=None,
-        subnet_width_mult=0.5,
+        subnet_channels=16,
     ):
         self.residual_model = residual_model
         self.scale = scale
         self.patch_size = patch_size
         self.overlap = overlap
-        self.full_threshold = float(threshold)
-        self.subnet_threshold = (
-            self.full_threshold if subnet_threshold is None else float(subnet_threshold)
-        )
-        self.subnet_width_mult = float(subnet_width_mult)
+        self.full_threshold = float(full_threshold)
+        self.subnet_threshold = float(subnet_threshold)
+        self.subnet_channels = int(subnet_channels)
         self.device = device
         self.stride = patch_size - overlap
         if self.stride <= 0:
             raise ValueError("arm_overlap 必须小于 arm_patch_size")
-        if self.subnet_threshold > self.full_threshold:
-            raise ValueError("arm_subnet_threshold 必须小于或等于 arm_threshold")
-        # lap = 0.25 * torch.tensor([[0.0, 1, 0.0], [1, -4, 1], [0.0, 1, 0.0]], device=device)
-        lap = 0.125 * torch.tensor([[-1., -1., -1.], [-1., 8., -1.], [-1., -1., -1.]], device=device)
-        self.laplace_kernel = lap.view(1, 1, 3, 3)
-
+        if not self.subnet_threshold < self.full_threshold:
+            raise ValueError("必须满足 arm_subnet_threshold < arm_threshold")
 
     def _starts(self, length):
         if length <= self.patch_size:
@@ -47,101 +43,131 @@ class DPSRFrame:
             starts.append(tail)
         return starts
 
-    def _patch_smooth_score(self, patch):
-        y = 0.299 * patch[:, 0:1] + 0.587 * patch[:, 1:2] + 0.114 * patch[:, 2:3]
-        lap = F.conv2d(y, self.laplace_kernel, padding=1)
-        return lap.abs().mean().item()
+    def _patch_smooth_score(self, laplace_scores, top, bottom, left, right):
+        return laplace_scores[:, :, top:bottom, left:right].mean().item()
+
+    def _residual(self, lr_patch, channels):
+        return self.residual_model(lr_patch / 255.0, channels=channels) * 255.0
 
     def infer(self, lr_img):
         batch_size, channels, lr_h, lr_w = lr_img.shape
         if batch_size != 1 or channels != 3:
-            raise ValueError(f'ARMSR expects a single RGB image, got shape {tuple(lr_img.shape)}')
+            raise ValueError(
+                f"ARMSR expects a single RGB image, got shape {tuple(lr_img.shape)}"
+            )
 
-        hr_h, hr_w = lr_h * self.scale, lr_w * self.scale
-        accum = torch.zeros_like(F.interpolate(lr_img, scale_factor=self.scale, mode='nearest'))
+        accum = torch.zeros_like(
+            F.interpolate(lr_img, scale_factor=self.scale, mode="nearest")
+        )
         weight = torch.zeros_like(accum)
-
-        total_patches = 0
-        enhanced_patches = 0
+        total_patches = enhanced_patches = 0
         score_sum = 0.0
-        branch_usage = {"bicubic": 0, "compressed_nn": 0, "full_nn": 0}
-
-        h_starts = self._starts(lr_h)
-        w_starts = self._starts(lr_w)
+        branch_usage = {"bicubic": 0, "subnet": 0, "full": 0}
 
         with torch.no_grad():
-            for top in h_starts:
-                for left in w_starts:
+            laplace_scores = laplacian_map(rgb_to_gray(lr_img))
+            for top in self._starts(lr_h):
+                for left in self._starts(lr_w):
                     bottom = min(top + self.patch_size, lr_h)
                     right = min(left + self.patch_size, lr_w)
-                    actual_h = bottom - top
-                    actual_w = right - left
+                    actual_h, actual_w = bottom - top, right - left
                     lr_patch = lr_img[:, :, top:bottom, left:right]
                     if actual_h < self.patch_size or actual_w < self.patch_size:
-                        pad_bottom = self.patch_size - actual_h
-                        pad_right = self.patch_size - actual_w
-                        lr_patch = F.pad(lr_patch, (0, pad_right, 0, pad_bottom), mode='replicate')
+                        lr_patch = F.pad(
+                            lr_patch,
+                            (
+                                0,
+                                self.patch_size - actual_w,
+                                0,
+                                self.patch_size - actual_h,
+                            ),
+                            mode="replicate",
+                        )
 
-                    score = self._patch_smooth_score(lr_patch)
+                    score = self._patch_smooth_score(
+                        laplace_scores, top, bottom, left, right
+                    )
                     score_sum += score
                     total_patches += 1
-
-                    base = F.interpolate(lr_patch, scale_factor=self.scale, mode='bicubic', align_corners=False).round().clamp(0, 255)
+                    base = (
+                        F.interpolate(
+                            lr_patch,
+                            scale_factor=self.scale,
+                            mode="bicubic",
+                            align_corners=False,
+                        )
+                        .round()
+                        .clamp(0, 255)
+                    )
                     if score >= self.full_threshold:
-                        branch_usage["full_nn"] += 1
-                        residual = self.residual_model(
-                            lr_patch / 255.0, width_mult=1.0
-                        ) * 255.0
-                        sr_patch = (base + residual).round().clamp(0, 255)
-                        enhanced_patches += 1
+                        branch_usage["full"] += 1
+                        residual = self._residual(
+                            lr_patch, channels=self.residual_model.fea_dim
+                        )
                     elif score >= self.subnet_threshold:
-                        branch_usage["compressed_nn"] += 1
-                        residual = self.residual_model(
-                            lr_patch / 255.0, width_mult=self.subnet_width_mult
-                        ) * 255.0
-                        sr_patch = (base + residual).round().clamp(0, 255)
-                        enhanced_patches += 1
+                        branch_usage["subnet"] += 1
+                        residual = self._residual(
+                            lr_patch, channels=self.subnet_channels
+                        )
                     else:
                         branch_usage["bicubic"] += 1
-                        sr_patch = base.clamp(0, 255)
+                        residual = None
 
-                    hr_top = top * self.scale
-                    hr_left = left * self.scale
-                    hr_h_valid = actual_h * self.scale
-                    hr_w_valid = actual_w * self.scale
+                    if residual is None:
+                        sr_patch = base
+                    else:
+                        sr_patch = (base + residual).round().clamp(0, 255)
+                        enhanced_patches += 1
+                    hr_top, hr_left = top * self.scale, left * self.scale
+                    hr_h_valid, hr_w_valid = (
+                        actual_h * self.scale,
+                        actual_w * self.scale,
+                    )
                     sr_valid = sr_patch[:, :, :hr_h_valid, :hr_w_valid]
-                    accum[:, :, hr_top:hr_top + hr_h_valid, hr_left:hr_left + hr_w_valid] += sr_valid
-                    weight[:, :, hr_top:hr_top + hr_h_valid, hr_left:hr_left + hr_w_valid] += 1.0
+                    accum[
+                        :,
+                        :,
+                        hr_top : hr_top + hr_h_valid,
+                        hr_left : hr_left + hr_w_valid,
+                    ] += sr_valid
+                    weight[
+                        :,
+                        :,
+                        hr_top : hr_top + hr_h_valid,
+                        hr_left : hr_left + hr_w_valid,
+                    ] += 1.0
 
         sr_img = accum / weight.clamp_min(1.0)
-        stats = {
+        branch_ratios = {
+            branch: count / max(1, total_patches)
+            for branch, count in branch_usage.items()
+        }
+        return sr_img, {
             "total_patches": total_patches,
             "enhanced_patches": enhanced_patches,
             "enhanced_ratio": enhanced_patches / max(1, total_patches),
             "avg_laplace_score": score_sum / max(1, total_patches),
             "branch_usage": branch_usage,
+            "branch_ratios": branch_ratios,
         }
-        return sr_img, stats
 
 
-def build_residual_model(args, device):  
+def build_residual_model(args, device):
     model = DPSR(
         scale=args.scale,
         in_dim=3,
         fea_dim=args.channel_nums,
         num_blocks=args.num_blocks,
         bias=False,
-        subnet_expand_block=args.subnet_expand_block,
+        subnet_channels=args.subnet_channels,
     ).to(device)
-    checkpoint_path = args.checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    model_state_dict = checkpoint.get("model_state_dict", checkpoint)
-    model.load_state_dict(model_state_dict, strict=True)
+    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
     model.eval()
     return model
 
 
-def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
+def validate_arm_metrics(frame, val_loader, scale, clip_ratio=1.0):
     metrics_list = []
     total_patches = 0
     enhanced_patches = 0
@@ -150,82 +176,90 @@ def validate_arm_metrics(frame, val_loader, scale, device, clip_ratio=1.0):
 
     with torch.no_grad():
         for lr_img, hr_img in val_loader:
-            lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
+            lr_img, hr_img = (
+                lr_img.to(frame.device).float(),
+                hr_img.to(frame.device).float(),
+            )
             sr_img, stat = frame.infer(lr_img)
-
             crop_border = scale
             sr_img = sr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
             hr_img = hr_img[:, :, crop_border:-crop_border, crop_border:-crop_border]
-
-            psnr = metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0))
-            ssim = metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0))
-            metrics_list.append((psnr, ssim))
-
+            metrics_list.append(
+                (
+                    metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0)),
+                    metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0)),
+                )
+            )
             total_patches += stat["total_patches"]
             enhanced_patches += stat["enhanced_patches"]
             score_sum += stat["avg_laplace_score"] * stat["total_patches"]
-            for branch, cnt in stat.get("branch_usage", {}).items():
-                branch_usage[branch] = branch_usage.get(branch, 0) + cnt
+            for branch, count in stat["branch_usage"].items():
+                branch_usage[branch] = branch_usage.get(branch, 0) + count
 
     if clip_ratio < 1.0:
-        metrics_list.sort(key=lambda x: x[0], reverse=True)
-        selected_count = max(1, int(len(metrics_list) * clip_ratio))
-        selected_metrics = metrics_list[:selected_count]
-    else:
-        selected_metrics = metrics_list
-
-    psnr_list = [item[0] for item in selected_metrics]
-    ssim_list = [item[1] for item in selected_metrics]
+        metrics_list.sort(key=lambda item: item[0], reverse=True)
+        metrics_list = metrics_list[: max(1, int(len(metrics_list) * clip_ratio))]
     result = {
-        "psnr": sum(psnr_list) / len(psnr_list),
-        "ssim": sum(ssim_list) / len(ssim_list),
+        "psnr": sum(item[0] for item in metrics_list) / len(metrics_list),
+        "ssim": sum(item[1] for item in metrics_list) / len(metrics_list),
     }
-    stats = {
+    branch_ratios = {
+        branch: count / max(1, total_patches) for branch, count in branch_usage.items()
+    }
+    return result, {
         "enhanced_ratio": enhanced_patches / max(1, total_patches),
         "avg_laplace_score": score_sum / max(1, total_patches),
         "enhanced_patches": enhanced_patches,
         "total_patches": total_patches,
         "branch_usage": branch_usage,
+        "branch_ratios": branch_ratios,
     }
-    return result, stats
 
 
 def main():
     args = final_test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
-    if args.arm_subnet_threshold >= args.arm_threshold:
-        raise ValueError("arm_subnet_threshold 必须严格小于 arm_threshold，才能形成三段路由")
-
     residual_model = build_residual_model(args, device)
     frame = DPSRFrame(
         residual_model=residual_model,
         scale=args.scale,
         patch_size=args.arm_patch_size,
         overlap=args.arm_overlap,
-        threshold=args.arm_threshold,
-        device=device,
+        full_threshold=args.arm_threshold,
         subnet_threshold=args.arm_subnet_threshold,
-        subnet_width_mult=args.arm_subnet_width_mult,
+        device=device,
+        subnet_channels=args.subnet_channels,
     )
-
     print(
-        f"Routing: bicubic < {args.arm_subnet_threshold:g} <= compressed_nn < "
-        f"{args.arm_threshold:g} <= full_nn; compressed_width={args.arm_subnet_width_mult:g}; expand_block={args.subnet_expand_block}"
+        f"Routing: bicubic < {args.arm_subnet_threshold:g} <= "
+        f"{channel_label(args.subnet_channels)} < {args.arm_threshold:g} <= "
+        f"{channel_label(args.channel_nums)}"
     )
-
     val_loaders = {
-        "Set5": create_val_loader(os.path.join(args.val_root, "Set5"), args.scale, in_channels=3)
+        dataset_name: create_val_loader(
+            os.path.join(args.val_root, dataset_name), args.scale, in_channels=3
+        )
+        for dataset_name in ("Set5", "B100")
     }
-
     for dataset_name, loader in val_loaders.items():
-        result, stat = validate_arm_metrics(frame, loader, args.scale, device, args.clip_ratio)
+        result, stat = validate_arm_metrics(frame, loader, args.scale, args.clip_ratio)
         print(
             f'{dataset_name}: PSNR: {result["psnr"]:.2f}, SSIM: {result["ssim"]:.4f}, '
-            f'NNPatch: {stat["enhanced_ratio"] * 100:.2f}% ({stat["enhanced_patches"]}/{stat["total_patches"]}), '
+            f'NNPatch: {stat["enhanced_ratio"] * 100:.2f}% '
+            f'({stat["enhanced_patches"]}/{stat["total_patches"]}), '
             f'LapMean: {stat["avg_laplace_score"]:.4f}'
         )
-        usage_text = ", ".join([f"{branch}:{cnt}" for branch, cnt in sorted(stat["branch_usage"].items())])
+        usage_text = ", ".join(
+            f"{branch}:{count}"
+            for branch, count in sorted(stat["branch_usage"].items())
+        )
+        ratio_text = ", ".join(
+            f"{branch}:{ratio * 100:.2f}%"
+            for branch, ratio in sorted(stat["branch_ratios"].items())
+        )
         print(f"BranchUsage: {usage_text}")
+        print(f"BranchRatio: {ratio_text}")
+
 
 if __name__ == "__main__":
     main()

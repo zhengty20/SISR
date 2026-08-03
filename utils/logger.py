@@ -30,7 +30,7 @@ class Logger:
         # 避免重复添加handler
         if not self.logger.handlers:
             # 创建文件handler
-            file_handler = logging.FileHandler(self.log_file, encoding='utf-8')
+            file_handler = logging.FileHandler(self.log_file, encoding="utf-8")
             file_handler.setLevel(logging.INFO)
 
             # 创建控制台handler
@@ -38,7 +38,7 @@ class Logger:
             console_handler.setLevel(logging.INFO)
 
             # 创建formatter
-            formatter = logging.Formatter('%(message)s')
+            formatter = logging.Formatter("%(message)s")
 
             file_handler.setFormatter(formatter)
             console_handler.setFormatter(formatter)
@@ -81,22 +81,29 @@ class Logger:
 
     def log_epoch_train(self, epoch, total_epochs, train_loss, lr):
         """记录每轮训练信息"""
-        self.info(f"Epoch {epoch+1}/{total_epochs}: Training loss={train_loss:.6f}, lr={lr:.2e}")
+        self.info(
+            f"Epoch {epoch+1}/{total_epochs}: Training loss={train_loss:.6f}, lr={lr:.2e}"
+        )
 
     def log_epoch_val(
-        self, epoch, total_epochs, val_loss, full_loss=None, subnet_loss=None,
-        subnet_width_mult=None, subnet_expand_block=None
+        self,
+        epoch,
+        total_epochs,
+        val_loss,
+        full_loss=None,
+        subnet_loss=None,
+        subnet_channels=None,
     ):
-        """Log full-width and optional subnet validation losses."""
-        message = f"Epoch {epoch+1}/{total_epochs}: Validation combined_loss={val_loss:.6f}"
+        """Log full-channel and optional explicit-subnet validation losses."""
+        message = (
+            f"Epoch {epoch+1}/{total_epochs}: Validation combined_loss={val_loss:.6f}"
+        )
         if full_loss is not None:
             message += f", full_loss={full_loss:.6f}"
         if subnet_loss is not None:
             subnet_label = "subnet"
-            if subnet_width_mult is not None:
-                subnet_label = f"width={subnet_width_mult:.1f}"
-            if subnet_expand_block is not None:
-                subnet_label += f",x={subnet_expand_block}"
+            if subnet_channels is not None:
+                subnet_label = f"channels={subnet_channels}"
             message += f", subnet_loss({subnet_label})={subnet_loss:.6f}"
         self.info(message)
 
@@ -106,7 +113,9 @@ class Logger:
 
     def log_validation_results(self, dataset_name, metrics):
         """记录验证结果"""
-        self.info(f"{dataset_name}: PSNR(Y)={metrics['psnr']:.3f}, SSIM(Y)={metrics['ssim']:.4f}")
+        self.info(
+            f"{dataset_name}: PSNR(Y)={metrics['psnr']:.3f}, SSIM(Y)={metrics['ssim']:.4f}"
+        )
 
     def log_training_finished(self):
         """记录训练结束"""
