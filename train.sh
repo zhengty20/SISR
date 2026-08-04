@@ -1,9 +1,9 @@
 python train.py \
-  --scale 2 \
+  --scale 4 \
   --channel_nums 32 \
   --subnet-channels 16 \
   --num_blocks 5 \
-  --epochs 180 \
+  --epochs 200 \
   --batch_size 64 \
   --lr 2.5e-3 \
   --minlr 8e-5 \
@@ -11,8 +11,8 @@ python train.py \
   --save_dir "./checkpoints" \
   --device cuda \
   --in_channels 3 \
-  --patch_size 48 \
-  --warmup_epochs 18 \
+  --patch_size 96 \
+  --warmup_epochs 20 \
   --ema_decay 0.999 \
   --is_residual \
   --joint_width_training \

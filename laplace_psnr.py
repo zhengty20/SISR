@@ -16,10 +16,9 @@ from utils.laplace import (
 )
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_VAL_DIR = Path("/home/tyzheng/Datasets_pt/val/Set5")
-DEFAULT_CHECKPOINT = SCRIPT_DIR / "checkpoints" / "DPSR_x2_0803_1031.pth"
+DEFAULT_VAL_DIR = Path("/home/tyzheng/Datasets_pt/val/Test4k")
+DEFAULT_CHECKPOINT = SCRIPT_DIR / "checkpoints" / "DPSR_x4_0804_1255.pth"
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / "spatial_redundancy_plots"
-SCALE = 2
 MIN_LAPLACIAN = 1
 MAX_LAPLACIAN = 24
 LAPLACIAN_STEP = 0.5
@@ -29,34 +28,35 @@ NUM_BINS = round((MAX_LAPLACIAN - MIN_LAPLACIAN) / LAPLACIAN_STEP)
 def parse_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Evaluate x2 super-resolution on Set5 blocks grouped by "
+            "Evaluate super-resolution on blocks grouped by "
             "their LR Laplacian scores."
         )
     )
-    parser.add_argument("--val-dir", type=Path, default=DEFAULT_VAL_DIR)
+    parser.add_argument("--val_dir", type=Path, default=DEFAULT_VAL_DIR)
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
-    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--in-channels", type=int, default=3, choices=(1, 3))
-    parser.add_argument("--channel-nums", type=int, default=32)
-    parser.add_argument("--num-blocks", type=int, default=5)
+    parser.add_argument("--output_dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--scale", type=int, default=4, choices=(2, 3, 4))
+    parser.add_argument("--in_channels", type=int, default=3, choices=(1, 3))
+    parser.add_argument("--channel_nums", type=int, default=32)
+    parser.add_argument("--num_blocks", type=int, default=5)
     parser.add_argument(
-        "--subnet-channels",
+        "--subnet_channels",
         type=int,
         default=16,
         help="Feature channels of the explicit full-depth DPSR subnet.",
     )
-    parser.add_argument("--block-size", type=int, default=24, help="LR block width/height.")
-    parser.add_argument("--max-images", type=int, default=0, help="0 uses the full dataset.")
+    parser.add_argument("--block_size", type=int, default=24, help="LR block width/height.")
+    parser.add_argument("--max_images", type=int, default=0, help="0 uses the full dataset.")
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument(
-        "--trend-degree",
+        "--trend_degree",
         type=int,
         default=3,
         choices=(1, 2, 3, 4, 5),
         help="Degree of the weighted Chebyshev trend curve.",
     )
     parser.add_argument(
-        "--plot-range",
+        "--plot_range",
         nargs=2,
         type=float,
         default=(MIN_LAPLACIAN, MAX_LAPLACIAN),
@@ -64,7 +64,7 @@ def parse_args():
         help="Inclusive Laplacian range for the overview plot.",
     )
     parser.add_argument(
-        "--detail-plot-range",
+        "--detail_plot_range",
         nargs=2,
         type=float,
         default=(8.0, MAX_LAPLACIAN),
@@ -179,7 +179,6 @@ def collect_block_statistics(dpsr_model, loader, args, device):
             dpsr_full = dpsr_full.round().clamp(0, 255)
             dpsr_subnet = dpsr_subnet.round().clamp(0, 255)
 
-            lr_y = to_y_channel(lr)
             hr_y = to_y_channel(hr)
             bicubic_y = to_y_channel(bicubic)
             dpsr_full_y = to_y_channel(dpsr_full)
@@ -363,7 +362,6 @@ def validate_plot_range(plot_range, option_name):
 
 def main():
     args = parse_args()
-    args.scale = SCALE
     if not 0 < args.subnet_channels < args.channel_nums:
         raise ValueError(
             f"--subnet-channels must be in [1, {args.channel_nums - 1}]"
@@ -376,7 +374,7 @@ def main():
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     dpsr_model = load_model(args, device)
-    loader = iter_validation_pairs(args.val_dir, SCALE, args.in_channels)
+    loader = iter_validation_pairs(args.val_dir, args.scale, args.in_channels)
     scores, dpsr_full_mse, dpsr_subnet_mse, bicubic_mse = collect_block_statistics(
         dpsr_model, loader, args, device
     )

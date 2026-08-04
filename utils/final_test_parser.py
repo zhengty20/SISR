@@ -13,7 +13,7 @@ def final_test_parser():
         "--channel_nums", type=int, default=32, choices=[32], help="完整路径通道数"
     )
     parser.add_argument(
-        "--subnet-channels", type=int, default=16, help="子网显式通道数"
+        "--subnet_channels", type=int, default=16, help="子网显式通道数"
     )
     parser.add_argument("--num_blocks", type=int, default=5, help="DPSR网络的Block数")
     parser.add_argument("--device", type=str, default="cuda", help="推理设备")

@@ -239,7 +239,7 @@ def main():
         dataset_name: create_val_loader(
             os.path.join(args.val_root, dataset_name), args.scale, in_channels=3
         )
-        for dataset_name in ("Set5", "B100")
+        for dataset_name in ("Set5", "Test4k")
     }
     for dataset_name, loader in val_loaders.items():
         result, stat = validate_arm_metrics(frame, loader, args.scale, args.clip_ratio)
