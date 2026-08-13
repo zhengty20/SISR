@@ -26,6 +26,14 @@ def train_parser():
     parser.add_argument("--batch_size", type=int, default=128, help="batch size")
     parser.add_argument("--lr", type=float, default=2e-3, help="initial learning rate")
     parser.add_argument(
+        "--quant-lr",
+        "--quant_lr",
+        dest="quant_lr",
+        type=float,
+        default=5e-4,
+        help="independent learning rate for LSQ+ scale and beta parameters",
+    )
+    parser.add_argument(
         "--minlr", type=float, default=1e-5, help="minimum learning rate"
     )
     parser.add_argument(
@@ -33,6 +41,12 @@ def train_parser():
     )
     parser.add_argument(
         "--save_dir", type=str, default="./checkpoints", help="checkpoint directory"
+    )
+    parser.add_argument(
+        "--datasets-root",
+        type=str,
+        default="/home/tyzheng/Datasets_pt",
+        help="shared dataset root containing train/ and val/ shards",
     )
     parser.add_argument("--device", type=str, default="cuda", help="training device")
     parser.add_argument(
@@ -42,10 +56,22 @@ def train_parser():
         help="full-channel DPSR checkpoint used for initialization",
     )
     parser.add_argument(
-        "--wbits", type=int, default=8, help="weight bitwidth for quantization"
+        "--wbits", type=int, default=4, help="weight bitwidth for quantization"
     )
     parser.add_argument(
-        "--abits", type=int, default=8, help="activation bitwidth for quantization"
+        "--abits", type=int, default=4, help="activation bitwidth for quantization"
+    )
+    parser.add_argument(
+        "--quant-calibration-batches",
+        type=int,
+        default=8,
+        help="full-precision batches used for LSQ+ activation MSE initialization",
+    )
+    parser.add_argument(
+        "--quant-calibration-samples",
+        type=int,
+        default=65536,
+        help="maximum feature-map samples retained per quantizer during calibration",
     )
     parser.add_argument(
         "--in_channels",

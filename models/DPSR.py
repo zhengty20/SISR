@@ -52,9 +52,8 @@ class USPReLU(nn.PReLU):
 
 
 class Block(nn.Module):
-    def __init__(self, fea_dim, subnet_channels, bias=True):
+    def __init__(self, fea_dim, bias=True):
         super().__init__()
-        self.supported_channels = (subnet_channels, fea_dim)
         kwargs = dict(kernel_size=1, padding=0, bias=bias, us=(True, True))
         self.projection1 = USConv2d(fea_dim, fea_dim, **kwargs)
         self.projection2 = USConv2d(fea_dim, fea_dim, **kwargs)
@@ -72,22 +71,14 @@ class Block(nn.Module):
 
     def forward(self, x):
         channels = x.shape[1]
-        if channels not in self.supported_channels:
-            raise ValueError(
-                f"block input channels must be one of {self.supported_channels}, got {channels}"
-            )
-        y = self.act1(
-            self.projection1(
-                self.filter1(x, active_out_channels=channels),
-                active_out_channels=channels,
-            )
-        )
-        return self.act2(
-            self.projection2(
-                self.filter2(y, active_out_channels=channels),
-                active_out_channels=channels,
-            )
-        )
+        skip = x
+        y = self.filter1(x, active_out_channels=channels)
+        y = self.projection1(y, active_out_channels=channels)
+        y = self.act1(y)
+        y = self.filter2(y, active_out_channels=channels)
+        y = self.projection2(y, active_out_channels=channels)
+        y = self.act2(y) + skip
+        return y
 
 
 class DPSR(nn.Module):
@@ -107,7 +98,7 @@ class DPSR(nn.Module):
             in_dim, fea_dim, kernel_size=1, padding=0, bias=bias, us=(False, True)
         )
         self.body = nn.ModuleList(
-            Block(fea_dim, self.subnet_channels, bias=bias) for _ in range(num_blocks)
+            Block(fea_dim, bias=bias) for _ in range(num_blocks)
         )
         self.tail = USConv2d(
             fea_dim,

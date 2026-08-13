@@ -262,7 +262,7 @@ if __name__ == '__main__':
         activation_bitwidth=ACTIVATION_BITWIDTH,
     ).to(device)
 
-    net.head1.set_input_quantization(False)
+    net.head.set_input_quantization(False)
     checkpoint = torch.load("./checkpoints/QDPSR_x2_0521_2101.pth", map_location=device, weights_only=False)
     model_state_dict = checkpoint.get('model_state_dict', checkpoint)
     net.load_state_dict(model_state_dict)

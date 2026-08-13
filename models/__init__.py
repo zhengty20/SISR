@@ -1,12 +1,11 @@
-from .BaselineSR import BaselineSR
+from .FSRCNN import FSRCNN
 from .DPSR import DPSR, channel_label
-from .QDPSR import QConv2dLSQP, QDPSR, build_qdpsr
-
+from .QDPSR import QDPSR, build_qdpsr, QConv2dLSQP
 __all__ = [
-    "BaselineSR",
+    "FSRCNN",
     "DPSR",
+    "channel_label",
     "QDPSR",
     "build_qdpsr",
-    "QConv2dLSQP",
-    "channel_label",
+    "QConv2dLSQP"
 ]

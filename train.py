@@ -8,7 +8,7 @@ import torch
 import torch.optim as optim
 from torch_ema import ExponentialMovingAverage
 
-from models import BaselineSR, DPSR, channel_label
+from models import FSRCNN, DPSR, channel_label
 from utils import (
     MixedLoss,
     WarmupCosineScheduler,
@@ -24,7 +24,6 @@ from utils import (
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-
 def _build_model(args, device):
     if args.is_residual:
         model = DPSR(
@@ -38,17 +37,13 @@ def _build_model(args, device):
         print(f"Using DPSR model for scale {args.scale}.")
         model_name = "DPSR"
     else:
-        model = BaselineSR(
-            scale=args.scale,
-            in_dim=args.in_channels,
-            fea_dim=args.channel_nums,
-            num_blocks=args.num_blocks,
-            bias=False,
+        model = FSRCNN(
+            scale_factor=args.scale,
+            num_channels=args.in_channels
         ).to(device)
-        print(f"Using BaselineSR model for scale {args.scale}.")
-        model_name = "BaselineSR"
+        print(f"Using FSRCNN model for scale {args.scale}.")
+        model_name = "FSRCNN"
     return model, model_name
-
 
 def _load_pretrained_model(model, checkpoint_path, device, logger):
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
@@ -139,8 +134,9 @@ def main():
     if args.pretrained_fp:
         _load_pretrained_model(model, args.pretrained_fp, device, logger)
 
+    datasets_root = Path(args.datasets_root)
     train_loader = create_train_loader(
-        "/home/tyzheng/Datasets_pt/train",
+        datasets_root / "train",
         scale=args.scale,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
@@ -149,7 +145,7 @@ def main():
     )
     val_loaders = {
         dataset_name: create_val_loader(
-            f"/home/tyzheng/Datasets_pt/val/{dataset_name}",
+            datasets_root / "val" / dataset_name,
             args.scale,
             in_channels=args.in_channels,
         )

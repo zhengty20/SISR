@@ -13,7 +13,7 @@ python train.py \
   --in_channels 3 \
   --patch_size 96 \
   --warmup_epochs 20 \
-  --ema_decay 0.999 \
+  --ema_decay 0.999
   --is_residual \
   --joint_width_training \
   --subnet_loss_weight 1.0 \

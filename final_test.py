@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn.functional as F
 
-from models import DPSR, channel_label
+from models import DPSR, FSRCNN, channel_label
 from utils import create_val_loader, final_test_parser, metrics
 from utils.laplace import laplacian_map, rgb_to_gray
 
@@ -161,10 +161,72 @@ def build_residual_model(args, device):
         bias=False,
         subnet_channels=args.subnet_channels,
     ).to(device)
-    checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    checkpoint = torch.load(args.dpsr_checkpoint, map_location=device, weights_only=False)
     model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
     model.eval()
     return model
+
+
+def build_fsrcnn_model(args, device):
+    model = FSRCNN(scale_factor=args.scale, num_channels=3).to(device)
+    checkpoint = torch.load(args.fsrcnn_checkpoint, map_location=device, weights_only=False)
+    model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
+    model.eval()
+    return model
+
+
+def validate_fsrcnn_metrics(model, val_loader, scale, device, clip_ratio=1.0):
+    metrics_list = []
+    with torch.no_grad():
+        for lr_img, hr_img in val_loader:
+            lr_img = lr_img.to(device).float()
+            hr_img = hr_img.to(device).float()
+            sr_img = (model(lr_img / 255.0) * 255.0).round().clamp(0, 255)
+            sr_img = sr_img[:, :, scale:-scale, scale:-scale]
+            hr_img = hr_img[:, :, scale:-scale, scale:-scale]
+            metrics_list.append(
+                (
+                    metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0)),
+                    metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0)),
+                )
+            )
+    if clip_ratio < 1.0:
+        metrics_list.sort(key=lambda item: item[0], reverse=True)
+        metrics_list = metrics_list[: max(1, int(len(metrics_list) * clip_ratio))]
+    return {
+        "psnr": sum(item[0] for item in metrics_list) / len(metrics_list),
+        "ssim": sum(item[1] for item in metrics_list) / len(metrics_list),
+    }
+
+
+def build_fsrcnn_model(args, device):
+    model = FSRCNN(scale_factor=args.scale, num_channels=3).to(device)
+    checkpoint = torch.load(args.fsrcnn_checkpoint, map_location=device, weights_only=False)
+    model.load_state_dict(checkpoint.get("model_state_dict", checkpoint), strict=True)
+    model.eval()
+    return model
+
+
+def validate_fsrcnn_metrics(model, val_loader, scale, device, clip_ratio=1.0):
+    metrics_list = []
+    with torch.no_grad():
+        for lr_img, hr_img in val_loader:
+            lr_img = lr_img.to(device).float()
+            hr_img = hr_img.to(device).float()
+            sr_img = (model(lr_img / 255.0) * 255.0).round().clamp(0, 255)
+            sr_img = sr_img[:, :, scale:-scale, scale:-scale]
+            hr_img = hr_img[:, :, scale:-scale, scale:-scale]
+            metrics_list.append((
+                metrics.calculate_psnr(sr_img.squeeze(0), hr_img.squeeze(0)),
+                metrics.calculate_ssim(sr_img.squeeze(0), hr_img.squeeze(0)),
+            ))
+    if clip_ratio < 1.0:
+        metrics_list.sort(key=lambda item: item[0], reverse=True)
+        metrics_list = metrics_list[: max(1, int(len(metrics_list) * clip_ratio))]
+    return {
+        "psnr": sum(item[0] for item in metrics_list) / len(metrics_list),
+        "ssim": sum(item[1] for item in metrics_list) / len(metrics_list),
+    }
 
 
 def validate_arm_metrics(frame, val_loader, scale, clip_ratio=1.0):
@@ -220,6 +282,7 @@ def main():
     args = final_test_parser()
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     residual_model = build_residual_model(args, device)
+    fsrcnn_model = build_fsrcnn_model(args, device)
     frame = DPSRFrame(
         residual_model=residual_model,
         scale=args.scale,
@@ -242,12 +305,19 @@ def main():
         for dataset_name in ("Set5", "Test4k")
     }
     for dataset_name, loader in val_loaders.items():
-        result, stat = validate_arm_metrics(frame, loader, args.scale, args.clip_ratio)
+        dpsr_result, stat = validate_arm_metrics(
+            frame, loader, args.scale, args.clip_ratio
+        )
+        fsrcnn_result = validate_fsrcnn_metrics(
+            fsrcnn_model, loader, args.scale, device, args.clip_ratio
+        )
+        print(f"{dataset_name}:")
         print(
-            f'{dataset_name}: PSNR: {result["psnr"]:.2f}, SSIM: {result["ssim"]:.4f}, '
-            f'NNPatch: {stat["enhanced_ratio"] * 100:.2f}% '
-            f'({stat["enhanced_patches"]}/{stat["total_patches"]}), '
-            f'LapMean: {stat["avg_laplace_score"]:.4f}'
+            f"  Dynamic DPSR: PSNR: {dpsr_result['psnr']:.2f}, "
+            f"SSIM: {dpsr_result['ssim']:.4f}, "
+            f"NNPatch: {stat['enhanced_ratio'] * 100:.2f}% "
+            f"({stat['enhanced_patches']}/{stat['total_patches']}), "
+            f"LapMean: {stat['avg_laplace_score']:.4f}"
         )
         usage_text = ", ".join(
             f"{branch}:{count}"
@@ -257,8 +327,12 @@ def main():
             f"{branch}:{ratio * 100:.2f}%"
             for branch, ratio in sorted(stat["branch_ratios"].items())
         )
-        print(f"BranchUsage: {usage_text}")
-        print(f"BranchRatio: {ratio_text}")
+        print(f"  BranchUsage: {usage_text}")
+        print(f"  BranchRatio: {ratio_text}")
+        print(
+            f"  FSRCNN: PSNR: {fsrcnn_result['psnr']:.2f}, "
+            f"SSIM: {fsrcnn_result['ssim']:.4f}"
+        )
 
 
 if __name__ == "__main__":

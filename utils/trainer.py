@@ -66,14 +66,19 @@ def train_epoch(
     ema=None,
     is_residual=True,
     joint_width_training=False,
+    alternate_width_training=False,
     subnet_channels=16,
     subnet_loss_weight=1.0,
     distill_loss_weight=0.0,
 ):
-    """Train the full-channel path and, optionally, the explicit subnet path."""
+    """Train full/subnet paths jointly or alternate one width per batch."""
+    if joint_width_training and alternate_width_training:
+        raise ValueError('joint and alternate width training are mutually exclusive')
     model.train()
     running_loss = 0.0
-    for lr_img, hr_img in tqdm(train_loader, desc=f"Epoch {epoch + 1}", leave=False):
+    for batch_index, (lr_img, hr_img) in enumerate(
+        tqdm(train_loader, desc=f"Epoch {epoch + 1}", leave=False)
+    ):
         lr_img, hr_img = lr_img.to(device).float(), hr_img.to(device).float()
         optimizer.zero_grad(set_to_none=True)
         target = (
@@ -82,9 +87,17 @@ def train_epoch(
             else hr_img / 255.0
         )
         model_input = lr_img / 255.0
-        full_sr = _forward_model(model, model_input, channels=model.fea_dim)
-        full_loss = loss_func(full_sr, target)
-        loss = full_loss
+        if alternate_width_training:
+            train_subnet = (batch_index + epoch) % 2 == 1
+            active_channels = subnet_channels if train_subnet else model.fea_dim
+            sr_img = _forward_model(model, model_input, channels=active_channels)
+            loss = loss_func(sr_img, target)
+            if train_subnet:
+                loss = subnet_loss_weight * loss
+        else:
+            full_sr = _forward_model(model, model_input, channels=model.fea_dim)
+            full_loss = loss_func(full_sr, target)
+            loss = full_loss
         if joint_width_training:
             subnet_sr = _forward_model(model, model_input, channels=subnet_channels)
             subnet_loss = loss_func(subnet_sr, target)
@@ -95,6 +108,8 @@ def train_epoch(
                 loss += distill_loss_weight * F.l1_loss(subnet_sr, full_sr.detach())
         loss.backward()
         optimizer.step()
+        if hasattr(model, 'project_quantization_parameters'):
+            model.project_quantization_parameters()
         if ema is not None:
             ema.update()
         running_loss += loss.item()
