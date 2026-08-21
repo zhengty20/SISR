@@ -8,7 +8,7 @@ from utils import metrics
 
 def _build_residual_target(hr_img, lr_img, scale):
     base = (
-        F.interpolate(lr_img, scale_factor=scale, mode="bicubic", align_corners=False)
+        F.interpolate(lr_img, scale_factor=scale, mode="bilinear", align_corners=False)
         .round()
         .clamp(0, 255)
     )
@@ -148,7 +148,7 @@ def validate_metrics(
         sr_builder = lambda lr_img: model_forward(
             lr_img / 255.0
         ) * 255.0 + F.interpolate(
-            lr_img, scale_factor=scale, mode="bicubic", align_corners=False
+            lr_img, scale_factor=scale, mode="bilinear", align_corners=False
         ).round().clamp(
             0, 255
         )
@@ -159,14 +159,14 @@ def validate_metrics(
     )
 
 
-def bicubic_metrics(val_loader, scale, device):
+def bilinear_metrics(val_loader, scale, device):
     return _evaluate_metrics_loop(
         val_loader,
         device,
         lambda lr_img: F.interpolate(
-            lr_img, scale_factor=scale, mode="bicubic", align_corners=False
+            lr_img, scale_factor=scale, mode="bilinear", align_corners=False
         ),
         scale,
         1.0,
-        "bicubic-metrics-validating",
+        "bilinear-metrics-validating",
     )

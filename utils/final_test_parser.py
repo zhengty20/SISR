@@ -29,7 +29,7 @@ def final_test_parser():
     parser.add_argument("--arm_patch_size", type=int, default=24, help="ARMSR低分辨率分块边长")
     parser.add_argument("--arm_overlap", type=int, default=2, help="ARMSR低分辨率分块重叠像素")
     parser.add_argument("--arm_threshold", type=float, default=12.5, help="进入完整通道NN的Laplace高阈值")
-    parser.add_argument("--arm_subnet_threshold", type=float, default=2.5, help="从bicubic进入子网NN的Laplace阈值")
+    parser.add_argument("--arm_subnet_threshold", type=float, default=2.5, help="从bilinear进入子网NN的Laplace阈值")
     parser.add_argument("--val_root", type=str, default="/home/tyzheng/Datasets_pt/val", help="验证集根目录")
     parser.add_argument("--clip_ratio", type=float, default=1, help="指标裁剪比例")
     return parser.parse_args()

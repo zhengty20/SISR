@@ -10,7 +10,7 @@ from torch_ema import ExponentialMovingAverage
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from models import QConv2dLSQP, build_qdpsr
-from utils import train_parser, train_epoch, validate_epoch, validate_metrics, bicubic_metrics, \
+from utils import train_parser, train_epoch, validate_epoch, validate_metrics, bilinear_metrics, \
 create_logger, create_train_loader, create_val_loader, WarmupCosineScheduler, MixedLoss
 
 def _build_q_model(args, device):
@@ -319,9 +319,9 @@ def main():
     net.eval()
     _log_model_metrics(logger, net, val_loaders, args, device)
 
-    logger.log_testing_start("Bicubic Interpolation")
+    logger.log_testing_start("Bilinear Interpolation")
     for dataset_name, loader in val_loaders.items():
-        val_metrics = bicubic_metrics(loader, args.scale, device)
+        val_metrics = bilinear_metrics(loader, args.scale, device)
         logger.log_validation_results(dataset_name, val_metrics)
 
     # 关闭logger

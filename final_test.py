@@ -62,7 +62,7 @@ class DPSRFrame:
         weight = torch.zeros_like(accum)
         total_patches = enhanced_patches = 0
         score_sum = 0.0
-        branch_usage = {"bicubic": 0, "subnet": 0, "full": 0}
+        branch_usage = {"bilinear": 0, "subnet": 0, "full": 0}
 
         with torch.no_grad():
             laplace_scores = laplacian_map(rgb_to_gray(lr_img))
@@ -93,7 +93,7 @@ class DPSRFrame:
                         F.interpolate(
                             lr_patch,
                             scale_factor=self.scale,
-                            mode="bicubic",
+                            mode="bilinear",
                             align_corners=False,
                         )
                         .round()
@@ -110,7 +110,7 @@ class DPSRFrame:
                             lr_patch, channels=self.subnet_channels
                         )
                     else:
-                        branch_usage["bicubic"] += 1
+                        branch_usage["bilinear"] += 1
                         residual = None
 
                     if residual is None:
@@ -294,7 +294,7 @@ def main():
         subnet_channels=args.subnet_channels,
     )
     print(
-        f"Routing: bicubic < {args.arm_subnet_threshold:g} <= "
+        f"Routing: bilinear < {args.arm_subnet_threshold:g} <= "
         f"{channel_label(args.subnet_channels)} < {args.arm_threshold:g} <= "
         f"{channel_label(args.channel_nums)}"
     )

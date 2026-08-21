@@ -12,7 +12,7 @@ from models import FSRCNN, DPSR, channel_label
 from utils import (
     MixedLoss,
     WarmupCosineScheduler,
-    bicubic_metrics,
+    bilinear_metrics,
     create_logger,
     create_train_loader,
     create_val_loader,
@@ -241,10 +241,10 @@ def main():
     net.eval()
     _log_model_metrics(logger, net, val_loaders, args, device)
 
-    logger.log_testing_start("Bicubic Interpolation")
+    logger.log_testing_start("Bilinear Interpolation")
     for dataset_name, loader in val_loaders.items():
         logger.log_validation_results(
-            dataset_name, bicubic_metrics(loader, args.scale, device)
+            dataset_name, bilinear_metrics(loader, args.scale, device)
         )
     logger.close()
 

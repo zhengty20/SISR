@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from utils import create_val_loader, test_parser, validate_metrics, bicubic_metrics
+from utils import create_val_loader, test_parser, validate_metrics, bilinear_metrics
 from models import DPSR, channel_label
 
 DUMP_LAYERS = ("body.1.projection2", "body.3.filter2")

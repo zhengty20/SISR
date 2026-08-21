@@ -111,11 +111,11 @@ def load_model(args, device):
     return model.to(device).eval(), checkpoint_path
 
 
-def model_outputs(model, model_input, bicubic, args):
+def model_outputs(model, model_input, bilinear, args):
     if args.model == "dpsr":
         return {
-            "dpsr_full": bicubic + model(model_input, channels=args.channel_nums) * 255.0,
-            "dpsr_subnet": bicubic + model(model_input, channels=args.subnet_channels) * 255.0,
+            "dpsr_full": bilinear + model(model_input, channels=args.channel_nums) * 255.0,
+            "dpsr_subnet": bilinear + model(model_input, channels=args.subnet_channels) * 255.0,
         }
     return {"fsrcnn": model(model_input) * 255.0}
 
@@ -125,7 +125,7 @@ def collect_block_statistics(model, loader, args, device):
     model_mse_parts = {name: [] for name in ("dpsr_full", "dpsr_subnet") if args.model == "dpsr"}
     if args.model == "fsrcnn":
         model_mse_parts["fsrcnn"] = []
-    bicubic_mse_parts = []
+    bilinear_mse_parts = []
 
     with torch.no_grad():
         for image_index, (lr, hr) in enumerate(loader):
@@ -142,17 +142,17 @@ def collect_block_statistics(model, loader, args, device):
 
             lr = lr[..., :lr_height, :lr_width]
             hr = hr[..., : lr_height * args.scale, : lr_width * args.scale]
-            bicubic = F.interpolate(
-                lr, scale_factor=args.scale, mode="bicubic", align_corners=False
+            bilinear = F.interpolate(
+                lr, scale_factor=args.scale, mode="bilinear", align_corners=False
             ).round().clamp(0, 255)
-            predictions = model_outputs(model, lr / 255.0, bicubic, args)
+            predictions = model_outputs(model, lr / 255.0, bilinear, args)
             hr_y = to_y_channel(hr)
-            bicubic_y = to_y_channel(bicubic)
+            bilinear_y = to_y_channel(bilinear)
             hr_block_size = args.block_size * args.scale
             score_parts.append(
                 block_means(shared_laplacian_map(rgb_to_gray(lr)), args.block_size).cpu()
             )
-            bicubic_mse_parts.append(block_mse(bicubic_y, hr_y, hr_block_size).cpu())
+            bilinear_mse_parts.append(block_mse(bilinear_y, hr_y, hr_block_size).cpu())
             for name, prediction in predictions.items():
                 prediction_y = to_y_channel(prediction.round().clamp(0, 255))
                 model_mse_parts[name].append(
@@ -164,14 +164,14 @@ def collect_block_statistics(model, loader, args, device):
     return (
         torch.cat(score_parts).numpy(),
         {name: torch.cat(parts).numpy() for name, parts in model_mse_parts.items()},
-        torch.cat(bicubic_mse_parts).numpy(),
+        torch.cat(bilinear_mse_parts).numpy(),
     )
 
 
-def bin_statistics(scores, model_mses, bicubic_mse, bins, max_laplacian):
+def bin_statistics(scores, model_mses, bilinear_mse, bins, max_laplacian):
     valid = scores <= max_laplacian
     scores = scores[valid]
-    bicubic_mse = bicubic_mse[valid]
+    bilinear_mse = bilinear_mse[valid]
     model_mses = {name: mse[valid] for name, mse in model_mses.items()}
     edges = np.linspace(0.0, max_laplacian, bins + 1)
     bin_ids = np.digitize(scores, edges[1:-1])
@@ -187,7 +187,7 @@ def bin_statistics(scores, model_mses, bicubic_mse, bins, max_laplacian):
         "centers": 0.5 * (edges[:-1] + edges[1:]),
         "counts": counts,
         "model_psnr": {name: mean_psnr_by_bin(mse) for name, mse in model_mses.items()},
-        "bicubic_psnr": mean_psnr_by_bin(bicubic_mse),
+        "bilinear_psnr": mean_psnr_by_bin(bilinear_mse),
     }
 
 
@@ -197,14 +197,14 @@ def save_csv(stats, output_path):
         writer = csv.writer(file)
         writer.writerow((
             "laplacian_min", "laplacian_max", "laplacian_center", "block_count",
-            *model_columns, "bicubic_psnr_db",
+            *model_columns, "bilinear_psnr_db",
         ))
         for index, center in enumerate(stats["centers"]):
             writer.writerow((
                 stats["edges"][index], stats["edges"][index + 1], center,
                 int(stats["counts"][index]),
                 *(values[index] for values in stats["model_psnr"].values()),
-                stats["bicubic_psnr"][index],
+                stats["bilinear_psnr"][index],
             ))
 
 
@@ -225,7 +225,7 @@ def save_line_plot(stats, output_path, plot_range, trend_degree):
     centers = stats["centers"]
     counts = stats["counts"]
     plot_min, plot_max = plot_range
-    curves = [(stats["bicubic_psnr"], "#5a89e6", "Bicubic")]
+    curves = [(stats["bilinear_psnr"], "#5a89e6", "Bilinear")]
     styles = {
         "fsrcnn": ("#8064a2", "FSRCNN"),
         "dpsr_subnet": ("#d9534f", "DPSR(subnet)"),
@@ -263,8 +263,8 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
     model, checkpoint_path = load_model(args, device)
     loader = iter_validation_pairs(args.val_dir, args.scale, args.in_channels)
-    scores, model_mses, bicubic_mse = collect_block_statistics(model, loader, args, device)
-    stats = bin_statistics(scores, model_mses, bicubic_mse, NUM_BINS, MAX_LAPLACIAN)
+    scores, model_mses, bilinear_mse = collect_block_statistics(model, loader, args, device)
+    stats = bin_statistics(scores, model_mses, bilinear_mse, NUM_BINS, MAX_LAPLACIAN)
 
     output_stem = args.output_dir / f"laplace_psnr_{args.model}"
     csv_path = output_stem.with_suffix(".csv")

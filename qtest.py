@@ -3,7 +3,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from utils import create_val_loader, test_parser, validate_metrics, bicubic_metrics
+from utils import create_val_loader, test_parser, validate_metrics, bilinear_metrics
 from models import build_qdpsr
 
 WEIGHT_BITWIDTH = 4
@@ -282,6 +282,6 @@ if __name__ == '__main__':
 
     _print_metrics(
         loaders=val_loaders,
-        metric_fn=lambda loader: bicubic_metrics(loader, args.scale, device),
-        name_suffix='-bicubic',
+        metric_fn=lambda loader: bilinear_metrics(loader, args.scale, device),
+        name_suffix='-bilinear',
     )
